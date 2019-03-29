@@ -14,6 +14,7 @@
 #include "vtkvmtkImageRender.h"
 #include "vtkvmtkImageViewer.h"
 #include "vtkvmtkImageWriter.h"
+#include "vtkvmtkImageVOISelector.h"
 
 
 VTK_MODULE_INIT(vtkRenderingOpenGL);
@@ -23,13 +24,15 @@ VTK_MODULE_INIT(vtkRenderingFreeType);
 //Tuturial Method
 void ShowImage(const char* fileName);
 void DicomToVti(const char* InputFileName, const char* OutputFileName);
+void VolumeExtraction(const char* InputFileName, const char* OutputFileName);
 
 
 int main()
 {
-	const char* InputFileName = "C:\\Users\\chenjiaxing\\Desktop\\Python\\body.vti";
-	const char* OutputFileName = "C:\\Users\\chenjiaxing\\Desktop\\Python\\PNG\\body";
+	const char* InputFileName = "C:\\Users\\chenjiaxing\\Desktop\\Python\\bodyExtractVOI.vti";
+	const char* OutputFileName = "C:\\Users\\chenjiaxing\\Desktop\\Python\\PNG\\bodyExtractVOI.vti";
 	ShowImage(InputFileName);
+	//VolumeExtraction(InputFileName, OutputFileName);
 	//DicomToVti(InputFileName, OutputFileName);
 	getchar();
 	return 0;
@@ -78,4 +81,25 @@ void DicomToVti(const char* InputFileName, const char* OutputFileName)
 	writer->SetFormat("png");
 	writer->Execute();
 	std::cout << "Success Write the File" << std::endl;
+}
+
+//Volume of interest (VOI) extraction
+void VolumeExtraction(const char* InputFileName, const char* OutFileName)
+{
+	itk::GDCMImageIOFactory::RegisterOneFactory();
+	vtkSmartPointer<vtkvmtkImageReader> reader =
+		vtkSmartPointer<vtkvmtkImageReader>::New();
+	reader->SetInputFileName(InputFileName);
+	reader->SetUseITKIO(true);
+	reader->Execute();
+	vtkvmtkImageVOISelector *selector = vtkvmtkImageVOISelector::New();
+	selector->SetImage(reader->GetImage());
+	selector->Execute();
+	vtkSmartPointer<vtkvmtkImageWriter> writer =
+		vtkSmartPointer<vtkvmtkImageWriter>::New();
+	writer->SetImage(selector->GetImage());
+	writer->SetOutputFileName(OutFileName);
+	writer->SetFormat("vtkxml");
+	writer->Execute();
+	std::cout << "Success Write the ExtractionVOI File" << std::endl;
 }

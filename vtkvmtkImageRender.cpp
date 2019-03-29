@@ -249,6 +249,10 @@ void vtkvmtkImageRenderer::QuitRendererCallback()
 	printf("Quit renderer\n");
 	this->Renderer->RemoveActor(this->TextActor);
 	this->RenderWindowInteractor->ExitCallback();
+	// Close the window
+	//this->RenderWindow->Finalize();
+	// Stop the interactor
+	//this->RenderWindowInteractor->TerminateApp();
 }
 
 void vtkvmtkImageRenderer::ScreenshotCallback()
@@ -389,6 +393,7 @@ void vtkvmtkImageRenderer::Execute()
 	this->Initialize();
 }
 
+//Add Prompt Message And Ask the Customer to Input
 void vtkvmtkImageRenderer::PromptAsync(const char* queryText /*,callback*/)
 {
 	this->SetTextInputQuery(queryText);
@@ -397,6 +402,15 @@ void vtkvmtkImageRenderer::PromptAsync(const char* queryText /*,callback*/)
 	//self.ExitTextInputCallback = callback;
 	this->UpdateTextInput();
 	this->EnterTextInputMode(0);
+}
+
+//Only Add the Prompt Message
+void vtkvmtkImageRenderer::SetPromptMessage(const char* Info)
+{
+	this->SetTextInputQuery(Info);
+	char* empty = '\0';
+	this->SetCurrentTextInput(empty);
+	this->UpdateTextInput();
 }
 
 std::string getTime()

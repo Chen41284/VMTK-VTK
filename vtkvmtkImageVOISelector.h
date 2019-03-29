@@ -39,6 +39,12 @@ Modified: changed from https://github.com/vmtk/vmtk/blob/master/vmtkScripts/vmtk
 //VTK-VMTK
 #include "vtkvmtkImageRender.h"
 
+class vtkvmtkImageVOISelector;
+
+//Static Call Method;
+void HideCubeStatic(vtkObject * caller, long unsigned int evId, void* clientData, void* callData);
+void UpdateCubeStatic(vtkObject * caller, long unsigned int evId, void* clientData, void* callData);
+
 class  vtkvmtkImageVOISelector : public vtkImageAlgorithm
 {
 public:
@@ -63,11 +69,9 @@ public:
 	//Execute
 	void Execute();
 
-	//the input image
-	//vtkSetObjectMacro(Image, vtkImageData);
-	//vtkGetObjectMacro(Image, vtkImageData);
-	vtkImageData* GetImage() { return this->Image; };
-
+	//The BoxActor call Method
+	void HideCube();
+	void UpdateCube(vtkBoxWidget* caller);
 
 protected:
 	vtkvmtkImageVOISelector();
@@ -86,10 +90,6 @@ protected:
 	vtkvmtkImagePlaneWidget *PlaneWidgetZ;
 	vtkBoxWidget *BoxWidget;
 	vtkImageData *Image;
-
-	//The BoxActor call Method
-	void HideCube(vtkObject * caller, long unsigned int evId, void* clientData, void* callData);
-	void UpdateCube(vtkObject * caller, long unsigned int evId, void* clientData, void* callData);
 
 	//Inner Method
 	void Display();

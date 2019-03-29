@@ -167,6 +167,9 @@ public:
 	void Initialize();
 	void Close();
 
+	//Prompt message
+	void SetPromptMessage(const char* Info);
+
 	//Call by Another Class
 	//callback is methond, the argument is not known
 	void PromptAsync(const char* queryText /*,callback*/);
