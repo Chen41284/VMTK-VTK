@@ -1,12 +1,12 @@
 /*=========================================================================
 
 Program:   VMTK
-Module:    $RCSfile: vmtkimagereader,v $
+Module:    $RCSfile: vtkvmtkImageReader,v $
 Language:  C++
 Date:      $Date: 2019/03/21 16:47:47 $
 Version:   $Revision: 1.0 $
 
-Modified: changed from https://github.com/vmtk/vmtk/blob/master/vmtkScripts/vmtkimagereader.py by @chen41284
+Modified: changed from https://github.com/vmtk/vmtk/blob/master/vmtkScripts/vmtkimagereader.py by @Chen41284
   Portions of this code are covered under the VTK copyright.
   See VTKCopyright.txt or http://www.kitware.com/VTKCopyright.htm
   for details.

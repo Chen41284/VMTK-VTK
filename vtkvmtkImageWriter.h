@@ -1,7 +1,7 @@
 /*=========================================================================
 
 Program:   VMTK
-Module:    $RCSfile: vmtkImageWriter,v $
+Module:    $RCSfile: vtkvmtkImageWriter,v $
 Language:  C++
 Date:      $Date: 2019/03/27 16:30:47 $
 Version:   $Revision: 1.0 $

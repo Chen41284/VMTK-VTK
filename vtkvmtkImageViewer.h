@@ -1,7 +1,7 @@
 /*=========================================================================
 
 Program:   VMTK
-Module:    $RCSfile: vmtkimagereader,v $
+Module:    $RCSfile: vtkvmtkImageViewer,v $
 Language:  C++
 Date:      $Date: 2019/03/25 17:44:47 $
 Version:   $Revision: 1.0 $

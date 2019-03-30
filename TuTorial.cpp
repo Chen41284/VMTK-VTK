@@ -15,6 +15,8 @@
 #include "vtkvmtkImageViewer.h"
 #include "vtkvmtkImageWriter.h"
 #include "vtkvmtkImageVOISelector.h"
+#include "vtkvmtkMarchingCubes.h"
+#include "vtkvmtkSurfaceWriter.h"
 
 
 VTK_MODULE_INIT(vtkRenderingOpenGL);
@@ -25,13 +27,13 @@ VTK_MODULE_INIT(vtkRenderingFreeType);
 void ShowImage(const char* fileName);
 void DicomToVti(const char* InputFileName, const char* OutputFileName);
 void VolumeExtraction(const char* InputFileName, const char* OutputFileName);
-
+void MarchingCubes(const char* InputFileName, int level, const char* OutputFile);
 
 int main()
 {
-	const char* InputFileName = "C:\\Users\\chenjiaxing\\Desktop\\Python\\bodyExtractVOI.vti";
-	const char* OutputFileName = "C:\\Users\\chenjiaxing\\Desktop\\Python\\PNG\\bodyExtractVOI.vti";
-	ShowImage(InputFileName);
+	const char* InputFileName = "C:\\Users\\chenjiaxing\\Desktop\\Python\\body.vti";
+	const char* OutputFileName = "C:\\Users\\chenjiaxing\\Desktop\\Python\\PNG\\body_mc_surface.ply";
+	MarchingCubes(InputFileName, 500, OutputFileName);
 	//VolumeExtraction(InputFileName, OutputFileName);
 	//DicomToVti(InputFileName, OutputFileName);
 	getchar();
@@ -100,6 +102,27 @@ void VolumeExtraction(const char* InputFileName, const char* OutFileName)
 	writer->SetImage(selector->GetImage());
 	writer->SetOutputFileName(OutFileName);
 	writer->SetFormat("vtkxml");
+	writer->Execute();
+	std::cout << "Success Write the ExtractionVOI File" << std::endl;
+}
+
+//MarchingCubes
+void MarchingCubes(const char* InputFileName, int level, const char* OutputFileName)
+{
+	itk::GDCMImageIOFactory::RegisterOneFactory();
+	vtkSmartPointer<vtkvmtkImageReader> reader =
+		vtkSmartPointer<vtkvmtkImageReader>::New();
+	reader->SetInputFileName(InputFileName);
+	reader->SetUseITKIO(true);
+	reader->Execute();
+	vtkvmtkMarchingCubes *mc = vtkvmtkMarchingCubes::New();
+	mc->SetImage(reader->GetImage());
+	mc->SetLevel(level);
+	mc->Execute();
+	vtkSmartPointer<vtkvmtkSurfaceWriter> writer =
+		vtkSmartPointer<vtkvmtkSurfaceWriter>::New();
+	writer->SetSurface(mc->GetSurface());
+	writer->SetOutputFileName(OutputFileName);
 	writer->Execute();
 	std::cout << "Success Write the ExtractionVOI File" << std::endl;
 }

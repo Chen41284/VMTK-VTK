@@ -1,7 +1,7 @@
 /*=========================================================================
 
 Program:   VMTK
-Module:    $RCSfile: vmtkImageWriter,v $
+Module:    $RCSfile: vtkvmtkImageVOISelector,v $
 Language:  C++
 Date:      $Date: 2019/03/28 17:25:47 $
 Version:   $Revision: 1.0 $
