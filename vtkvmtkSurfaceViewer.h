@@ -28,14 +28,37 @@ Modified: adapted from https://github.com/vmtk/vmtk/blob/master/vmtkScripts/vmtk
 #include <vtkPolyData.h>
 #include <vtkCellData.h>
 #include <vtkActor.h>
+#include <vtkScalarBarActor.h>
+#include <vtkActor2D.h>
 
 // STD includes
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <set>
 
 //VMTK-NEW
 #include "vtkvmtkImageRender.h"
+
+class  vtkvmtkSurfaceViewer;
+
+// Define interaction style
+class KeyPressInteractorStyleSurface : public vtkInteractorStyleTrackballCamera
+{
+public:
+	static KeyPressInteractorStyleSurface* New();
+	vtkTypeMacro(KeyPressInteractorStyleSurface, vtkInteractorStyleTrackballCamera);
+
+	virtual void OnKeyPress() override;
+
+	void SetSurfaceViewer(vtkvmtkSurfaceViewer* surfaceViewer)
+	{
+		this->surfaceViewer = surfaceViewer;
+	}
+
+protected:
+	vtkvmtkSurfaceViewer* surfaceViewer;
+};
 
 class  vtkvmtkSurfaceViewer : public vtkImageAlgorithm
 {
@@ -95,6 +118,7 @@ public:
 
 	//external renderer
 	void SetRenderer(vtkvmtkImageRenderer* renderer) { this->vmtkRenderer = renderer; };
+	vtkvmtkImageRenderer* GetRenderer() { return this->vmtkRenderer; };
 
 	//Execute
 	void Execute();
@@ -127,9 +151,10 @@ protected:
 	bool DisplayTag;
 	char *RegionTagArrayName;
 	int NumberOfRegions;
-	std::vector<double> TagSet;
+	std::set<double> TagSet;
 	vtkActor *Actor;
-	vtkActor *ScalarBarActor;
+	vtkActor2D *labelsActor;
+	vtkScalarBarActor *ScalarBarActor;
 
 	//Inner Method
 	void BuildView();

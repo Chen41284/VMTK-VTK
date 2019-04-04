@@ -258,7 +258,7 @@ void vtkvmtkImageRenderer::QuitRendererCallback()
 void vtkvmtkImageRenderer::ScreenshotCallback()
 {
 	printf("Take a Screenshot\n");
-	std::string  filePrefix = "vmtk-";
+	std::string  filePrefix = "ScreenShot\\vmtk-";
 	std::string fileName = filePrefix + getTime() + ".png";
 	vtkSmartPointer<vtkWindowToImageFilter> windowToImage =
 		vtkSmartPointer<vtkWindowToImageFilter>::New();
@@ -326,7 +326,7 @@ void vtkvmtkImageRenderer::ExitTextInputMode()
 		this->RenderWindowInteractor->ExitCallback();
 }
 
-void vtkvmtkImageRenderer::Render(bool interactive)
+void vtkvmtkImageRenderer::Render(bool interactive, const char* Promt)
 {
 	//std::cout << interactive << std::endl;
 	if (interactive)
@@ -336,11 +336,12 @@ void vtkvmtkImageRenderer::Render(bool interactive)
 	std::string keyText = "\n  \'x\', \'Take screenshot.\'";
 	keyText += "\n  \'r\', \'Reset camera.\'";
 	keyText += "\n  \'q\', \'Quit renderer/proceed.\'";
+	if (Promt != nullptr)
+		keyText += Promt;
 	std::cout << keyText << std::endl;
 
 	this->TextActor->SetInput(keyText.c_str());
 	this->Renderer->AddActor(this->TextActor);
-
 	this->RenderWindow->Render();
 
 	if (interactive)

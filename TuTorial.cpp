@@ -17,6 +17,7 @@
 #include "vtkvmtkImageVOISelector.h"
 #include "vtkvmtkMarchingCubes.h"
 #include "vtkvmtkSurfaceWriter.h"
+#include "vtkvmtkSurfaceViewer.h"
 
 
 VTK_MODULE_INIT(vtkRenderingOpenGL);
@@ -38,7 +39,7 @@ int main()
 	//DicomToVti(InputFileName, OutputFileName);
 	getchar();
 	return 0;
-}
+} 
 
 //Reading and displaying images
 void ShowImage(const char* fileName)
@@ -119,10 +120,16 @@ void MarchingCubes(const char* InputFileName, int level, const char* OutputFileN
 	mc->SetImage(reader->GetImage());
 	mc->SetLevel(level);
 	mc->Execute();
-	vtkSmartPointer<vtkvmtkSurfaceWriter> writer =
+	/*vtkSmartPointer<vtkvmtkSurfaceWriter> writer =
 		vtkSmartPointer<vtkvmtkSurfaceWriter>::New();
 	writer->SetSurface(mc->GetSurface());
 	writer->SetOutputFileName(OutputFileName);
 	writer->Execute();
-	std::cout << "Success Write the ExtractionVOI File" << std::endl;
+	std::cout << "Success Write the ExtractionVOI File" << std::endl;*/
+	vtkSmartPointer<vtkvmtkSurfaceViewer> surfaceViewer =
+		vtkSmartPointer<vtkvmtkSurfaceViewer>::New();
+	surfaceViewer->SetSurface(mc->GetSurface());
+	surfaceViewer->SetLegend(true);
+	surfaceViewer->SetColorMap("cooltowarm");
+	surfaceViewer->Execute();
 }

@@ -153,6 +153,9 @@ public:
 	//Get the RenderWindow
 	vtkRenderWindow* GetRenderWindow() { return this->RenderWindow; };
 
+	//Get the TextActor
+	vtkTextActor* GetTextActor() { return this->TextActor; };
+
 	//Execute
 	void Execute();
 	//Read Image Method
@@ -163,7 +166,7 @@ public:
 	void QuitRendererCallback();
 	void EnterTextInputMode(bool interactive = 1);
 	void ExitTextInputMode();
-	void Render(bool interactive = 1);
+	void Render(bool interactive = 1, const char* Promt = nullptr);
 	void Initialize();
 	void Close();
 
