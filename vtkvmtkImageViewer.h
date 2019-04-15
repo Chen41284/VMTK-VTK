@@ -31,7 +31,7 @@ Modified: adapted from https://github.com/vmtk/vmtk/blob/master/vmtkScripts/vmtk
 
 // VMTK
 #include "vtkvmtkImageReader.h"
-#include "vtkvmtkImageRender.h"
+#include "vtkvmtkRenderer.h"
 
 // STD includes
 #include <algorithm>
@@ -56,7 +56,7 @@ public:
 
 	//external renderer
 	//vtkSetObjectMacro(vmtkRenderer, vtkvmtkImageRenderer);
-	void SetvmtkRenderer(vtkvmtkImageRenderer* renderer) { this->vmtkRenderer = renderer; };
+	void SetvmtkRenderer(vtkvmtkRenderer* renderer) { this->vmtkRenderer = renderer; };
 
 	//the window/level for displaying the images
 	vtkSetVector2Macro(WindowLevel, double);
@@ -94,7 +94,8 @@ protected:
 	void BuildView();
 
 	vtkImageData *Image;
-	vtkvmtkImageRenderer* vmtkRenderer;
+	vtkvmtkRenderer* vmtkRenderer;
+	bool InnervmtkRenderer;
 	bool OwnRenderer;
 	bool Display;
 	char *ArrayName;

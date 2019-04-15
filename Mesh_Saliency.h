@@ -1,6 +1,7 @@
-#pragma once
+#ifndef __MeshSaliency_H
+#define __MeshSaliency_H
 /*
-* 作者：陈家兴
+* 作者：Chen41284
 * 日期：2019-01-13
 * 功能：实现 Mesh Saliency论文的功能 论文地址：https://dl.acm.org/citation.cfm?id=1073244
 * 代码：ComputeSaliency   改编自Yupan Liu Github : https://github.com/climberpi/Mesh-Saliency
@@ -149,3 +150,6 @@ float dot(const vec3& a, const vec3& b);
 float get_squared_dist(vec3 from, vec3 to);
 float get_Euc_dist(vec3 from, vec3 to);
 mat3 transpose(const mat3& mm);
+
+
+#endif

@@ -15,15 +15,16 @@ vtkStandardNewMacro(vtkvmtkImageViewer);
 
 vtkvmtkImageViewer::vtkvmtkImageViewer()
 {
-	this->Image = NULL;
-	this->vmtkRenderer = NULL;
+	this->Image = nullptr;
+	this->vmtkRenderer = nullptr;
 	this->OwnRenderer = false;
 	this->Display = true;
-	this->ArrayName = NULL;
-	this->Picker = NULL;
-	this->PlaneWidgetX = NULL;
-	this->PlaneWidgetY = NULL;
-	this->PlaneWidgetZ = NULL;
+	this->ArrayName = nullptr;
+	this->Picker = nullptr;
+	this->PlaneWidgetX = nullptr;
+	this->PlaneWidgetY = nullptr;
+	this->PlaneWidgetZ = nullptr;
+	this->InnervmtkRenderer = false;
 	this->Margins = false;
 	this->TextureInterpolation = true;
 	this->ContinuousCursor = false;
@@ -32,40 +33,41 @@ vtkvmtkImageViewer::vtkvmtkImageViewer()
 
 vtkvmtkImageViewer::~vtkvmtkImageViewer()
 {
-	if (this->Image != NULL)
+	if (this->Image != nullptr)
 	{
 		this->Image->Delete();
-		this->Image = NULL;
+		this->Image = nullptr;
 	}
-	if (this->vmtkRenderer != NULL)
+	//只删除由内部构造的vmtkRenderer
+	if (this->vmtkRenderer != nullptr && this->InnervmtkRenderer == true)
 	{
 		this->vmtkRenderer->Delete();
-		this->vmtkRenderer = NULL;
+		this->vmtkRenderer = nullptr;
 	}
-	if (this->ArrayName != NULL)
+	if (this->ArrayName != nullptr)
 	{
 		delete[] this->ArrayName;
-		this->ArrayName = NULL;
+		this->ArrayName = nullptr;
 	}
-	if (this->Picker != NULL)
+	if (this->Picker != nullptr)
 	{
 		this->Picker->Delete();
-		this->Picker = NULL;
+		this->Picker = nullptr;
 	}
-	if (this->PlaneWidgetX != NULL)
+	if (this->PlaneWidgetX != nullptr)
 	{
 		this->PlaneWidgetX->Delete();
-		this->PlaneWidgetX = NULL;
+		this->PlaneWidgetX = nullptr;
 	}
-	if (this->PlaneWidgetY != NULL)
+	if (this->PlaneWidgetY != nullptr)
 	{
 		this->PlaneWidgetY->Delete();
-		this->PlaneWidgetY = NULL;
+		this->PlaneWidgetY = nullptr;
 	}
-	if (this->PlaneWidgetZ != NULL)
+	if (this->PlaneWidgetZ != nullptr)
 	{
 		this->PlaneWidgetZ->Delete();
-		this->PlaneWidgetZ = NULL;
+		this->PlaneWidgetZ = nullptr;
 	}
 }
 
@@ -77,7 +79,7 @@ void vtkvmtkImageViewer::PrintSelf(ostream& os, vtkIndent indent)
 
 void vtkvmtkImageViewer::Execute()
 {
-	if ((this->Image == NULL) && (this->Display == true))
+	if ((this->Image == nullptr) && (this->Display == true))
 	{
 		std::cerr << "no Image" << std::endl;
 		return;
@@ -87,22 +89,23 @@ void vtkvmtkImageViewer::Execute()
 
 void vtkvmtkImageViewer::BuildView()
 {
-	if (this->vmtkRenderer == NULL)
+	if (this->vmtkRenderer == nullptr)
 	{
-		this->vmtkRenderer = vtkvmtkImageRenderer::New();
+		this->vmtkRenderer = vtkvmtkRenderer::New();
 		this->vmtkRenderer->Initialize();
 		this->OwnRenderer = true;
+		this->InnervmtkRenderer = true;
 	}
-	if (this->ArrayName != NULL)
+	if (this->ArrayName != nullptr)
 		this->Image->GetPointData()->SetActiveScalars(this->ArrayName);
 	int *wholeExtent = this->Image->GetExtent(); //Six number
-	if (this->Picker == NULL)
+	if (this->Picker == nullptr)
 		this->Picker = vtkCellPicker::New();
-	if (this->PlaneWidgetX == NULL)
+	if (this->PlaneWidgetX == nullptr)
 		this->PlaneWidgetX = vtkvmtkImagePlaneWidget::New();
-	if (this->PlaneWidgetY == NULL)
+	if (this->PlaneWidgetY == nullptr)
 		this->PlaneWidgetY = vtkvmtkImagePlaneWidget::New();
-	if (this->PlaneWidgetZ == NULL)
+	if (this->PlaneWidgetZ == nullptr)
 		this->PlaneWidgetZ = vtkvmtkImagePlaneWidget::New();
 	this->Picker->SetTolerance(0.005);
 	this->PlaneWidgetX->SetResliceInterpolateToLinear();

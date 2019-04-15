@@ -37,7 +37,7 @@ Modified: adapted from https://github.com/vmtk/vmtk/blob/master/vmtkScripts/vmtk
 #include <vtkvmtkImagePlaneWidget.h>
 
 //VTK-VMTK
-#include "vtkvmtkImageRender.h"
+#include "vtkvmtkRenderer.h"
 
 class vtkvmtkImageVOISelector;
 
@@ -64,7 +64,7 @@ public:
 	//Get Output Cropped Image
 	vtkImageData* GetImage() { return this->Image; }
 	//external renderer
-	void SetvmtkRenderer(vtkvmtkImageRenderer *renderer) { this->vmtkRenderer = renderer; }
+	void SetvmtkRenderer(vtkvmtkRenderer *renderer) { this->vmtkRenderer = renderer; }
 
 	//Execute
 	void Execute();
@@ -82,8 +82,9 @@ protected:
 	bool BoxActive;
 	bool Interactive;
 	double BoxBounds[6];
+	bool InnervmtkRenderer;
 	vtkImageData *CroppedImage;
-	vtkvmtkImageRenderer *vmtkRenderer;
+	vtkvmtkRenderer *vmtkRenderer;
 	bool OwnRenderer;
 	vtkvmtkImagePlaneWidget *PlaneWidgetX;
 	vtkvmtkImagePlaneWidget *PlaneWidgetY;

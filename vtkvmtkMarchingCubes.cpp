@@ -10,23 +10,24 @@ vtkStandardNewMacro(vtkvmtkMarchingCubes);
 
 vtkvmtkMarchingCubes::vtkvmtkMarchingCubes()
 {
-	this->Image = vtkImageData::New();
+	//this->Image = vtkImageData::New();
+	this->Image = nullptr;
 	this->Surface = vtkPolyData::New();
-	this->ArrayName = NULL;
+	this->ArrayName = nullptr;
 	this->Level = 0.0;
 	this->Connectivity = false;
 }
 
 vtkvmtkMarchingCubes::~vtkvmtkMarchingCubes()
 {
-	this->Image->Delete();
-	this->Image = NULL;
+	/*this->Image->Delete();
+	this->Image = nullptr;*/
 	this->Surface->Delete();
-	this->Surface = NULL;
-	if (this->ArrayName != NULL)
+	this->Surface = nullptr;
+	if (this->ArrayName != nullptr)
 	{
 		delete this->ArrayName;
-		this->ArrayName = NULL;
+		this->ArrayName = nullptr;
 	}
 }
 
@@ -39,11 +40,18 @@ void vtkvmtkMarchingCubes::PrintSelf(ostream& os, vtkIndent indent)
 void vtkvmtkMarchingCubes::Execute()
 {
 	//Not Input Image, All Dimension is zero
-	if (this->Image->GetDimensions()[0] == 0 &&
+	//void SetImage(vtkImageData* data) { this->Image->DeepCopy(data); }
+	/*if (this->Image->GetDimensions()[0] == 0 &&
 		this->Image->GetDimensions()[1] == 0 &&
 		this->Image->GetDimensions()[2] == 0)
 	{
 		std::cerr << "Error: no Image." << std::endl;
+		return;
+	}*/
+	if (this->Image == nullptr)
+	{
+		std::cerr << "Error: no Image." << std::endl;
+		return;
 	}
 	int *extent = this->Image->GetExtent();
 	vtkSmartPointer<vtkImageTranslateExtent> translateExtent = 
@@ -52,7 +60,7 @@ void vtkvmtkMarchingCubes::Execute()
 	translateExtent->SetTranslation(-extent[0], -extent[2], -extent[4]);
 	translateExtent->Update();
 
-	if (this->ArrayName != NULL)
+	if (this->ArrayName != nullptr)
 		translateExtent->GetOutput()->GetPointData()->SetActiveScalars(this->ArrayName);
 
 	vtkSmartPointer<vtkMarchingCubes> marchingCubes = 

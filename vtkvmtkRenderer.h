@@ -1,11 +1,10 @@
 /*=========================================================================
 
 Program:   VMTK
-Module:    $RCSfile: vtkvmtkImageRenderer,v $ 
+Module:    $RCSfile: vtkvmtkRenderer,v $
 Language:  C++
-Date:      $Date: 2019/03/23 17:55:47 $
+Date:      $Date: 2019/04/07 16:55:47 $
 Version:   $Revision: 1.0 $
-----deprecated------
 
 Modified: adapted from https://github.com/vmtk/vmtk/blob/master/vmtkScripts/vmtkrenderer.py by @chen41284
   Portions of this code are covered under the VTK copyright.
@@ -17,8 +16,8 @@ Modified: adapted from https://github.com/vmtk/vmtk/blob/master/vmtkScripts/vmtk
 	 PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __vtkvmtkImageRenderer_H
-#define __vtkvmtkImageRenderer_H
+#ifndef __vtkvmtkRenderer_H
+#define __vtkvmtkRenderer_H
 
 // VTK includes
 #include <vtkImageAlgorithm.h>
@@ -41,18 +40,18 @@ Modified: adapted from https://github.com/vmtk/vmtk/blob/master/vmtkScripts/vmtk
 #include <vector>
 #include <map>
 
-class vtkvmtkImageRenderer;
+class vtkvmtkRenderer;
 class KeyPressInteractorStyle;
 
-class vmtkRendererInputStreamOrigin : public vtkImageAlgorithm
+class vmtkRendererInputStream : public vtkImageAlgorithm
 {
 public:
-	static vmtkRendererInputStreamOrigin* New();
-	vtkTypeMacro(vmtkRendererInputStreamOrigin, vtkImageAlgorithm);
+	static vmtkRendererInputStream* New();
+	vtkTypeMacro(vmtkRendererInputStream, vtkImageAlgorithm);
 	void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
 
-	void SetvmtkRender(vtkvmtkImageRenderer* imageRender)
+	void SetvmtkRender(vtkvmtkRenderer* imageRender)
 	{
 		this->renderer = imageRender;
 	}
@@ -60,38 +59,38 @@ public:
 	char* ReadLine();
 	void promt(const char* text);
 
-	vmtkRendererInputStreamOrigin(vtkvmtkImageRenderer* render);
+	vmtkRendererInputStream(vtkvmtkRenderer* render);
 protected:
-	vtkvmtkImageRenderer* renderer;
-	vmtkRendererInputStreamOrigin();
-	~vmtkRendererInputStreamOrigin();
+	vtkvmtkRenderer* renderer;
+	vmtkRendererInputStream();
+	~vmtkRendererInputStream();
 };
 
 
 // Define interaction style
-class KeyPressInteractorStyleOrigin : public vtkInteractorStyleTrackballCamera
+class KeyPressInteractorStyle : public vtkInteractorStyleTrackballCamera
 {
 public:
-	static KeyPressInteractorStyleOrigin* New();
-	vtkTypeMacro(KeyPressInteractorStyleOrigin, vtkInteractorStyleTrackballCamera);
+	static KeyPressInteractorStyle* New();
+	vtkTypeMacro(KeyPressInteractorStyle, vtkInteractorStyleTrackballCamera);
 
 	virtual void OnKeyPress() override;
 
-	void SetvmtkRender(vtkvmtkImageRenderer* imageRender)
+	void SetvmtkRender(vtkvmtkRenderer* imageRender)
 	{
 		this->renderer = imageRender;
 	}
 
 protected:
-	vtkvmtkImageRenderer* renderer;
+	vtkvmtkRenderer* renderer;
 };
 
 //renderer used to make several viewers use the same rendering window
-class  vtkvmtkImageRenderer : public vtkImageAlgorithm
+class  vtkvmtkRenderer : public vtkImageAlgorithm
 {
 public:
-	static vtkvmtkImageRenderer *New();
-	vtkTypeMacro(vtkvmtkImageRenderer, vtkImageAlgorithm);
+	static vtkvmtkRenderer *New();
+	vtkTypeMacro(vtkvmtkRenderer, vtkImageAlgorithm);
 	void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
 	//toggle rendering of annotations superimposed to the renderer
@@ -146,7 +145,7 @@ public:
 	//vtkSetObjectMacro(RenderWindowInteractor, vtkRenderWindowInteractor);
 	//vtkGetObjectMacro(RenderWindowInteractor, vtkRenderWindowInteractor);
 	void SetRenderWindowInteractor(vtkRenderWindowInteractor* inter) { this->RenderWindowInteractor = inter; };
-	vtkRenderWindowInteractor *GetRenderWindowInteractor(){ return this->RenderWindowInteractor; };
+	vtkRenderWindowInteractor *GetRenderWindowInteractor() { return this->RenderWindowInteractor; };
 
 	//Get the Renderer
 	vtkRenderer* GetRenderer() { return this->Renderer; };
@@ -176,11 +175,11 @@ public:
 
 	//Call by Another Class
 	//callback is methond, the argument is not known
-	void PromptAsync(const char* queryText /*,callback*/);
+	const char* PromptAsync(const char* queryText /*,callback*/);
 
 protected:
-	vtkvmtkImageRenderer();
-	~vtkvmtkImageRenderer();
+	vtkvmtkRenderer();
+	~vtkvmtkRenderer();
 	vtkRenderer *Renderer;
 	vtkRenderWindow *RenderWindow;
 	vtkRenderWindowInteractor *RenderWindowInteractor;
@@ -207,8 +206,8 @@ protected:
 	bool UseRendererInputStream;
 
 private:
-	vtkvmtkImageRenderer(const vtkvmtkImageRenderer&) = delete;
-	void operator== (const vtkvmtkImageRenderer&) = delete;
+	vtkvmtkRenderer(const vtkvmtkRenderer&) = delete;
+	void operator== (const vtkvmtkRenderer&) = delete;
 };
 
 #endif

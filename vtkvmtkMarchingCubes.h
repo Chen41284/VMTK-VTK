@@ -55,7 +55,8 @@ public:
 	//the input image
 	//vtkSetObjectMacro(Image, vtkImageData);
 	//vtkGetObjectMacro(Image, vtkImageData);
-	void SetImage(vtkImageData* data) { this->Image->DeepCopy(data); }
+	//void SetImage(vtkImageData* data) { this->Image->DeepCopy(data); }
+	void SetImage(vtkImageData* data) { this->Image = data; };
 	vtkImageData* GetImage() { return this->Image; }
 
 	//The Output data

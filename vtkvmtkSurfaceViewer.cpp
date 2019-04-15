@@ -111,6 +111,7 @@ vtkvmtkSurfaceViewer::vtkvmtkSurfaceViewer()
 	this->Surface = nullptr;
 	this->vmtkRenderer = nullptr;
 	this->OwnRenderer = false;
+	this->InnerSurface = false;
 	this->Display = true;
 	this->Opacity = 1.0;
 	this->ArrayName = nullptr;
@@ -119,6 +120,7 @@ vtkvmtkSurfaceViewer::vtkvmtkSurfaceViewer()
 	strcpy_s(this->ColorMap, strlen("cooltowarm")+1, "cooltowarm");
 	this->NumberOfColors = 256;
 	this->Legend = false;
+	this->InnervmtkRenderer = false;
 	this->LegendTitle = nullptr;
 	this->Grayscale = false;
 	this->FlatInterpolation = false;
@@ -169,10 +171,17 @@ vtkvmtkSurfaceViewer::~vtkvmtkSurfaceViewer()
 		this->ScalarBarActor->Delete();
 		this->ScalarBarActor = nullptr;
 	}
-	if (this->vmtkRenderer != nullptr)
+	//内部的vmtkRenderer，则回收该内存空间
+	if (this->vmtkRenderer != nullptr && this->InnervmtkRenderer == true)
 	{
 		this->vmtkRenderer->Delete();
 		this->vmtkRenderer = nullptr;
+	}
+	//内部的Surface polydata，则回收该内存空间
+	if (this->Surface != nullptr && this->InnerSurface == true)
+	{
+		this->Surface->Delete();
+		this->Surface = nullptr;
 	}
 }
 
@@ -222,9 +231,10 @@ void vtkvmtkSurfaceViewer::BuildView()
 {
 	if (this->vmtkRenderer == nullptr)
 	{
-		this->vmtkRenderer = vtkvmtkImageRenderer::New();
+		this->vmtkRenderer = vtkvmtkRenderer::New();
 		this->vmtkRenderer->Initialize();
 		this->OwnRenderer = true;
+		this->InnervmtkRenderer = true;
 	}
 	if (this->Actor != nullptr)
 		this->vmtkRenderer->GetRenderer()->RemoveActor(this->Actor);
@@ -288,7 +298,7 @@ void vtkvmtkSurfaceViewer::BuildView()
 			lut->Build();
 			mapper->SetLookupTable(lut);
 		}
-		else if (!strcmp(this->ColorMap, "cooltowarm"))
+		else if (!strcmp(this->ColorMap, "blackbody"))
 		{
 			std::cout << "ColorMap:blackbody " << std::endl;
 			vtkLookupTable *lut = vtkLookupTable::SafeDownCast(mapper->GetLookupTable());
@@ -300,9 +310,9 @@ void vtkvmtkSurfaceViewer::BuildView()
 			colorTransferFunction->AddRGBPoint(0.4, 0.901961, 0.0, 0.0);
 			colorTransferFunction->AddRGBPoint(0.8, 0.901961, 0.901961, 0.0);
 			colorTransferFunction->AddRGBPoint(1.0, 1.0, 1.0, 1.0);
-			for (double ii = 0; ii < this->NumberOfColors; ii++)
+			for (int ii = 0; ii < this->NumberOfColors; ii++)
 			{
-				double ss = ii / double(this->NumberOfColors);
+				double ss = double(ii) / double(this->NumberOfColors);
 				double *cc = colorTransferFunction->GetColor(ss);
 				lut->SetTableValue(ii, cc[0], cc[1], cc[2], 1.0);
 			}
@@ -320,9 +330,9 @@ void vtkvmtkSurfaceViewer::BuildView()
 			colorTransferFunction->AddRGBPoint(0, 0.231373, 0.298039, 0.752941);
 			colorTransferFunction->AddRGBPoint(0.5, 0.865003, 0.865003, 0.865003);
 			colorTransferFunction->AddRGBPoint(1.0, 0.705882, 0.0156863, 0.14902);
-			for (double ii = 0; ii < this->NumberOfColors; ii++)
+			for (int ii = 0; ii < this->NumberOfColors; ii++)
 			{
-				double ss = ii / double(this->NumberOfColors);
+				double ss = double(ii) / double(this->NumberOfColors);
 				double *cc = colorTransferFunction->GetColor(ss);
 				lut->SetTableValue(ii, cc[0], cc[1], cc[2], 1.0);
 			}
@@ -373,7 +383,7 @@ void vtkvmtkSurfaceViewer::BuildViewWithTag()
 {
 	if (this->vmtkRenderer == nullptr)
 	{
-		this->vmtkRenderer = vtkvmtkImageRenderer::New();
+		this->vmtkRenderer = vtkvmtkRenderer::New();
 		this->vmtkRenderer->Initialize();
 		this->OwnRenderer = true;
 	}
@@ -385,7 +395,10 @@ void vtkvmtkSurfaceViewer::BuildViewWithTag()
 	vtkSmartPointer<vtkPoints> labelPoints = vtkSmartPointer<vtkPoints>::New();
 	if (this->Surface->GetPointData()->GetArray(this->RegionTagArrayName) == NULL &&
 		this->Surface->GetCellData()->GetArray(this->RegionTagArrayName) == NULL)
+	{
 		std::cerr << "Error: no regiontagarray with name specified" << std::endl;
+		return;
+	}
 	else if (this->Surface->GetPointData()->GetArray(this->RegionTagArrayName) != NULL)
 	{
 		vtkDataArray *regionTagArray = this->Surface->GetPointData()->GetArray(this->RegionTagArrayName);

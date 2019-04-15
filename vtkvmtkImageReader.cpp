@@ -24,12 +24,12 @@ vtkStandardNewMacro(vtkvmtkImageReader);
 
 vtkvmtkImageReader::vtkvmtkImageReader()
 {
-	this->Format = NULL;
+	this->Format = nullptr;
 	this->GuessFormat = 1;
 	this->UseITKIO = 1;
-	this->InputFileName = NULL;
-	this->InputFilePrefix = NULL;
-	this->InputFilePattern = NULL;
+	this->InputFileName = nullptr;
+	this->InputFilePrefix = nullptr;
+	this->InputFilePattern = nullptr;
 	this->Image = 0;
 	this->Output = 0;
 	for (int i = 0; i < 6; i++)
@@ -57,32 +57,32 @@ vtkvmtkImageReader::~vtkvmtkImageReader()
 	if (this->Format)
 	{
 		delete[] this->Format;
-		this->Format = NULL;
+		this->Format = nullptr;
 	}
 	if (this->InputFileName)
 	{
 		delete[] this->InputFileName;
-		this->InputFileName = NULL;
+		this->InputFileName = nullptr;
 	}
 	if (this->InputFilePrefix)
 	{
 		delete[] this->InputFilePrefix;
-		this->InputFilePrefix = NULL;
+		this->InputFilePrefix = nullptr;
 	}
 	if (this->InputFilePattern)
 	{
 		delete[] this->InputFilePattern;
-		this->InputFilePattern = NULL;
+		this->InputFilePattern = nullptr;
 	}
 	if (this->RasToIjkMatrixCoefficients)
 	{
 		RasToIjkMatrixCoefficients->Delete();
-		this->RasToIjkMatrixCoefficients = NULL;
+		this->RasToIjkMatrixCoefficients = nullptr;
 	}
 	if (this->XyzToRasMatrixCoefficients)
 	{
 		XyzToRasMatrixCoefficients->Delete();
-		this->XyzToRasMatrixCoefficients = NULL;
+		this->XyzToRasMatrixCoefficients = nullptr;
 	}
 }
 
@@ -104,7 +104,7 @@ void vtkvmtkImageReader::Execute()
 	extensionFormats["tif"] = "tiff";
 	extensionFormats["png"] = "png";
 
-	if (this->GuessFormat && this->InputFileName != NULL && this->Format == NULL)
+	if (this->GuessFormat && this->InputFileName != nullptr && this->Format == nullptr)
 	{
 		std::string fileName = this->InputFileName;
 		size_t index = fileName.find_first_of(".");
@@ -122,7 +122,7 @@ void vtkvmtkImageReader::Execute()
 	}
 	//Use ITKIO the Format in not [vtkxml, vtk, raw]
 	if (this->UseITKIO == true &&
-		this->InputFileName != NULL &&
+		this->InputFileName != nullptr &&
 		strcmp(this->Format, "vtkxml") && strcmp(this->Format, "vtk") &&
 		strcmp(this->Format, "raw")) 
 	{
@@ -190,7 +190,7 @@ void vtkvmtkImageReader::Execute()
 
 void vtkvmtkImageReader::ReadVTKXMLImageFile()
 {
-	if (this->InputFileName == NULL)
+	if (this->InputFileName == nullptr)
 		std::cerr << "Error: no InputFileName." << std::endl;
 	std::cout << "Reading VTK XML image file." << std::endl;
 	vtkXMLImageDataReader *reader = vtkXMLImageDataReader::New();
@@ -201,7 +201,7 @@ void vtkvmtkImageReader::ReadVTKXMLImageFile()
 
 void vtkvmtkImageReader::ReadVTKImageFile()
 {
-	if (this->InputFileName == NULL)
+	if (this->InputFileName == nullptr)
 		std::cerr << "Error: no InputFileName." << std::endl;
 	std::cout << "Reading VTK image file." << std::endl;
 	vtkStructuredPointsReader *reader = vtkStructuredPointsReader::New();
@@ -218,18 +218,18 @@ void vtkvmtkImageReader::ReadVTKImageFile()
 //	   HeaderSize, DataScalarType
 void vtkvmtkImageReader::ReadRawImageFile()
 {
-	if (this->InputFileName == NULL && this->InputFilePrefix == NULL)
+	if (this->InputFileName == nullptr && this->InputFilePrefix == nullptr)
 	{
 		std::cerr << "Error: no InputFileName or InputFilePrefix." << std::endl;
 	}
 	std::cout << "Reading RAW image file." << std::endl;
 	vtkImageReader * reader = vtkImageReader::New();
-	if (this->InputFileName != NULL)
+	if (this->InputFileName != nullptr)
 		reader->SetFileName(this->InputFileName);
 	else // Not InputFileName, but have FilePrefix or FilePattern
 	{
 		reader->SetFilePrefix(this->InputFilePrefix);
-		if (this->InputFilePattern != NULL)
+		if (this->InputFilePattern != nullptr)
 			reader->SetFilePattern(this->InputFilePattern);
 		else
 			reader->SetFilePattern("%s%04d.png");
@@ -261,7 +261,7 @@ void vtkvmtkImageReader::ReadRawImageFile()
 
 void vtkvmtkImageReader::ReadMetaImageFile()
 {
-	if (this->InputFileName == NULL)
+	if (this->InputFileName == nullptr)
 		std::cerr << "Error: no InputFileName." << std::endl;
 	std::cout << "Reading meta image file." << std::endl;
 	vtkMetaImageReader *reader = vtkMetaImageReader::New();
@@ -277,18 +277,18 @@ void vtkvmtkImageReader::ReadMetaImageFile()
 //
 void vtkvmtkImageReader::ReadTIFFImageFile()
 {
-	if (this->InputFileName == NULL && this->InputFilePrefix == NULL)
+	if (this->InputFileName == nullptr && this->InputFilePrefix == nullptr)
 	{
 		std::cerr << "Error: no InputFileName or InputFilePrefix." << std::endl;
 	}
 	std::cout << "Reading TIFF image file." << std::endl;
 	vtkTIFFReader *reader = vtkTIFFReader::New();
-	if (this->InputFileName != NULL)
+	if (this->InputFileName != nullptr)
 		reader->SetFileName(this->InputFileName);
 	else // Not InputFileName, but have FilePrefix or FilePattern
 	{
 		reader->SetFilePrefix(this->InputFilePrefix);
-		if (this->InputFilePattern != NULL)
+		if (this->InputFilePattern != nullptr)
 			reader->SetFilePattern(this->InputFilePattern);
 		else
 			reader->SetFilePattern("%s%04d.png");
@@ -307,18 +307,18 @@ void vtkvmtkImageReader::ReadTIFFImageFile()
 //
 void vtkvmtkImageReader::ReadPNGImageFile()
 {
-	if (this->InputFileName == NULL && this->InputFilePrefix == NULL)
+	if (this->InputFileName == nullptr && this->InputFilePrefix == nullptr)
 	{
 		std::cerr << "Error: no InputFileName or InputFilePrefix." << std::endl;
 	}
 	std::cout << "Reading PNG image file." << std::endl;
 	vtkPNGReader *reader = vtkPNGReader::New();
-	if (this->InputFileName != NULL)
+	if (this->InputFileName != nullptr)
 		reader->SetFileName(this->InputFileName);
 	else // Not InputFileName, but have FilePrefix or FilePattern
 	{
 		reader->SetFilePrefix(this->InputFilePrefix);
-		if (this->InputFilePattern != NULL)
+		if (this->InputFilePattern != nullptr)
 			reader->SetFilePattern(this->InputFilePattern);
 		else
 			reader->SetFilePattern("%s%04d.png");
@@ -332,7 +332,7 @@ void vtkvmtkImageReader::ReadPNGImageFile()
 
 void vtkvmtkImageReader::ReadITKIO()
 {
-	if (this->InputFileName == NULL)
+	if (this->InputFileName == nullptr)
 		std::cout << "Error: no InputFileName." << std::endl;
 	vtkvmtkITKArchetypeImageSeriesScalarReader *reader = vtkvmtkITKArchetypeImageSeriesScalarReader::New();
 	reader->SetArchetype(this->InputFileName);

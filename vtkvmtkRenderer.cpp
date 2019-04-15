@@ -1,4 +1,4 @@
-#include "vtkvmtkImageRender.h"
+#include "vtkvmtkRenderer.h"
 
 //VTK Includes
 #include <vtkObjectFactory.h>
@@ -9,40 +9,40 @@
 #include <math.h>
 #include <time.h>
 
-vtkStandardNewMacro(KeyPressInteractorStyleOrigin);
-vtkStandardNewMacro(vtkvmtkImageRenderer);
-vtkStandardNewMacro(vmtkRendererInputStreamOrigin);
-std::string getTime();
+vtkStandardNewMacro(KeyPressInteractorStyle);
+vtkStandardNewMacro(vtkvmtkRenderer);
+vtkStandardNewMacro(vmtkRendererInputStream);
+std::string getTimeRenderer();
 
-vmtkRendererInputStreamOrigin::vmtkRendererInputStreamOrigin(vtkvmtkImageRenderer *renderer)
+vmtkRendererInputStream::vmtkRendererInputStream(vtkvmtkRenderer *renderer)
 {
 	this->renderer = renderer;
 }
 
-vmtkRendererInputStreamOrigin::vmtkRendererInputStreamOrigin()
+vmtkRendererInputStream::vmtkRendererInputStream()
 {
 	this->renderer = NULL;
 }
 
-vmtkRendererInputStreamOrigin::~vmtkRendererInputStreamOrigin()
+vmtkRendererInputStream::~vmtkRendererInputStream()
 {
 
 }
 
-void vmtkRendererInputStreamOrigin::PrintSelf(ostream& os, vtkIndent indent)
+void vmtkRendererInputStream::PrintSelf(ostream& os, vtkIndent indent)
 {
 	this->Superclass::PrintSelf(os, indent);
 	os << indent << "vtk ITK Image InputStream Text\n";
 }
 
-char* vmtkRendererInputStreamOrigin::ReadLine()
+char* vmtkRendererInputStream::ReadLine()
 {
 	this->renderer->EnterTextInputMode();
 
 	return this->renderer->GetCurrentTextInput();
 }
 
-void vmtkRendererInputStreamOrigin::promt(const char* text)
+void vmtkRendererInputStream::promt(const char* text)
 {
 	this->renderer->SetTextInputQuery(text);
 	char* empty = '\0';
@@ -50,7 +50,7 @@ void vmtkRendererInputStreamOrigin::promt(const char* text)
 	this->renderer->UpdateTextInput();
 }
 
-void KeyPressInteractorStyleOrigin::OnKeyPress()
+void KeyPressInteractorStyle::OnKeyPress()
 {
 	// Get the keypress
 	vtkRenderWindowInteractor *rwi = this->Interactor;
@@ -78,7 +78,7 @@ void KeyPressInteractorStyleOrigin::OnKeyPress()
 			if (!strcmp(key.substr(0, 3).c_str(), "KP_"))
 				key.erase(0, 3);
 		}
-		
+
 		if (key == "space")
 			key = " ";
 		else if (key == "minus" || key == "Subtract")
@@ -131,7 +131,7 @@ void KeyPressInteractorStyleOrigin::OnKeyPress()
 	vtkInteractorStyleTrackballCamera::OnKeyPress();
 }
 
-vtkvmtkImageRenderer::vtkvmtkImageRenderer()
+vtkvmtkRenderer::vtkvmtkRenderer()
 {
 	this->Renderer = nullptr;
 	this->RenderWindow = nullptr;
@@ -157,7 +157,7 @@ vtkvmtkImageRenderer::vtkvmtkImageRenderer()
 	this->UseRendererInputStream = true;
 }
 
-vtkvmtkImageRenderer::~vtkvmtkImageRenderer()
+vtkvmtkRenderer::~vtkvmtkRenderer()
 {
 	if (this->Renderer != nullptr)
 	{
@@ -206,13 +206,13 @@ vtkvmtkImageRenderer::~vtkvmtkImageRenderer()
 	}
 }
 
-void vtkvmtkImageRenderer::PrintSelf(ostream& os, vtkIndent indent)
+void vtkvmtkRenderer::PrintSelf(ostream& os, vtkIndent indent)
 {
 	this->Superclass::PrintSelf(os, indent);
 	os << indent << "vtk ITK Image Render\n";
 }
 
-int vtkvmtkImageRenderer::_GetScreenFontSize()
+int vtkvmtkRenderer::_GetScreenFontSize()
 {
 	vtkSmartPointer<vtkRenderWindow> tempRenderWindow =
 		vtkSmartPointer<vtkRenderWindow>::New();
@@ -237,14 +237,14 @@ int vtkvmtkImageRenderer::_GetScreenFontSize()
 	return scaledFontSize;
 }
 
-void vtkvmtkImageRenderer::ResetCameraCallback()
+void vtkvmtkRenderer::ResetCameraCallback()
 {
 	printf("Reset Camera\n");
 	this->Renderer->ResetCamera();
 	this->RenderWindow->Render();
 }
 
-void vtkvmtkImageRenderer::QuitRendererCallback()
+void vtkvmtkRenderer::QuitRendererCallback()
 {
 	printf("Quit renderer\n");
 	this->Renderer->RemoveActor(this->TextActor);
@@ -255,11 +255,11 @@ void vtkvmtkImageRenderer::QuitRendererCallback()
 	//this->RenderWindowInteractor->TerminateApp();
 }
 
-void vtkvmtkImageRenderer::ScreenshotCallback()
+void vtkvmtkRenderer::ScreenshotCallback()
 {
 	printf("Take a Screenshot\n");
 	std::string  filePrefix = "ScreenShot\\vmtk-";
-	std::string fileName = filePrefix + getTime() + ".png";
+	std::string fileName = filePrefix + getTimeRenderer() + ".png";
 	vtkSmartPointer<vtkWindowToImageFilter> windowToImage =
 		vtkSmartPointer<vtkWindowToImageFilter>::New();
 	windowToImage->SetInput(this->RenderWindow);
@@ -274,11 +274,11 @@ void vtkvmtkImageRenderer::ScreenshotCallback()
 	writer->Write();
 }
 
-void vtkvmtkImageRenderer::UpdateTextInput()
+void vtkvmtkRenderer::UpdateTextInput()
 {
 	if (this->TextInputQuery != NULL)
 	{
-		if (this->CurrentTextInput != NULL || this->CurrentTextInput == " ")
+		if (this->CurrentTextInput != NULL || this->CurrentTextInput == "")
 		{
 			std::string text = this->TextInputQuery;
 			text += this->CurrentTextInput; text += "_";
@@ -295,12 +295,12 @@ void vtkvmtkImageRenderer::UpdateTextInput()
 	this->RenderWindow->Render();
 }
 
-void vtkvmtkImageRenderer::Close()
+void vtkvmtkRenderer::Close()
 {
 	return;
 }
 
-void vtkvmtkImageRenderer::EnterTextInputMode(bool interactive)
+void vtkvmtkRenderer::EnterTextInputMode(bool interactive)
 {
 	this->SetCurrentTextInput("");
 	this->Renderer->AddActor(this->TextInputActor);
@@ -310,7 +310,7 @@ void vtkvmtkImageRenderer::EnterTextInputMode(bool interactive)
 	this->Render(interactive);
 }
 
-void vtkvmtkImageRenderer::ExitTextInputMode()
+void vtkvmtkRenderer::ExitTextInputMode()
 {
 	this->Renderer->RemoveActor(this->TextInputActor);
 	this->Renderer->AddActor(this->TextActor);
@@ -326,7 +326,7 @@ void vtkvmtkImageRenderer::ExitTextInputMode()
 		this->RenderWindowInteractor->ExitCallback();
 }
 
-void vtkvmtkImageRenderer::Render(bool interactive, const char* Promt)
+void vtkvmtkRenderer::Render(bool interactive, const char* Promt)
 {
 	//std::cout << interactive << std::endl;
 	if (interactive)
@@ -348,10 +348,10 @@ void vtkvmtkImageRenderer::Render(bool interactive, const char* Promt)
 	{
 		this->RenderWindowInteractor->Start();
 	}
-		
+
 }
 
-void vtkvmtkImageRenderer::Initialize()
+void vtkvmtkRenderer::Initialize()
 {
 	if (this->Renderer == NULL)
 	{
@@ -368,8 +368,8 @@ void vtkvmtkImageRenderer::Initialize()
 		this->RenderWindow->SetInteractor(this->RenderWindowInteractor);
 
 		//Add KeyPressed monitor
-		vtkSmartPointer<KeyPressInteractorStyleOrigin> style =
-			vtkSmartPointer<KeyPressInteractorStyleOrigin>::New();
+		vtkSmartPointer<KeyPressInteractorStyle> style =
+			vtkSmartPointer<KeyPressInteractorStyle>::New();
 		style->SetvmtkRender(this);
 		this->RenderWindowInteractor->SetInteractorStyle(style);
 
@@ -389,13 +389,14 @@ void vtkvmtkImageRenderer::Initialize()
 	}
 }
 
-void vtkvmtkImageRenderer::Execute()
+void vtkvmtkRenderer::Execute()
 {
 	this->Initialize();
 }
 
 //Add Prompt Message And Ask the Customer to Input
-void vtkvmtkImageRenderer::PromptAsync(const char* queryText /*,callback*/)
+//return the Input text
+const char* vtkvmtkRenderer::PromptAsync(const char* queryText /*,callback*/)
 {
 	this->SetTextInputQuery(queryText);
 	char* empty = '\0';
@@ -403,10 +404,11 @@ void vtkvmtkImageRenderer::PromptAsync(const char* queryText /*,callback*/)
 	//self.ExitTextInputCallback = callback;
 	this->UpdateTextInput();
 	this->EnterTextInputMode(0);
+	return this->GetCurrentTextInput();
 }
 
 //Only Add the Prompt Message
-void vtkvmtkImageRenderer::SetPromptMessage(const char* Info)
+void vtkvmtkRenderer::SetPromptMessage(const char* Info)
 {
 	this->SetTextInputQuery(Info);
 	char* empty = '\0';
@@ -414,7 +416,7 @@ void vtkvmtkImageRenderer::SetPromptMessage(const char* Info)
 	this->UpdateTextInput();
 }
 
-std::string getTime()
+std::string getTimeRenderer()
 {
 	time_t timep;
 	time(&timep);

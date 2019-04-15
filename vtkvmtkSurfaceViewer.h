@@ -38,7 +38,7 @@ Modified: adapted from https://github.com/vmtk/vmtk/blob/master/vmtkScripts/vmtk
 #include <set>
 
 //VMTK-NEW
-#include "vtkvmtkImageRender.h"
+#include "vtkvmtkRenderer.h"
 
 class  vtkvmtkSurfaceViewer;
 
@@ -115,10 +115,17 @@ public:
 
 	//Set the Input Image
 	void SetSurface(vtkPolyData* data){ this->Surface = data ; }
+	//DeepCoyp Facedata
+	void SetInputSurface(vtkPolyData* data)
+	{
+		this->Surface = vtkPolyData::New();
+		this->Surface->DeepCopy(data);
+		this->InnerSurface = true;
+	}
 
 	//external renderer
-	void SetRenderer(vtkvmtkImageRenderer* renderer) { this->vmtkRenderer = renderer; };
-	vtkvmtkImageRenderer* GetRenderer() { return this->vmtkRenderer; };
+	void SetRenderer(vtkvmtkRenderer* renderer) { this->vmtkRenderer = renderer; };
+	vtkvmtkRenderer* GetRenderer(void) { return this->vmtkRenderer; };
 
 	//Execute
 	void Execute();
@@ -132,8 +139,10 @@ protected:
 	~vtkvmtkSurfaceViewer();
 	//Input Arguments
 	vtkPolyData *Surface;
-	vtkvmtkImageRenderer *vmtkRenderer;
+	vtkvmtkRenderer *vmtkRenderer;
+	bool InnervmtkRenderer;
 	bool OwnRenderer;
+	bool InnerSurface;
 	bool Display;
 	double Opacity;
 	char *ArrayName;

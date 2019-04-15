@@ -45,40 +45,46 @@ vtkvmtkImageVOISelector::vtkvmtkImageVOISelector()
 	for (int i = 0; i < 6; i++)
 		this->BoxBounds[i] = 0.0;
 	this->CroppedImage = vtkImageData::New();
-	this->vmtkRenderer = NULL;
+	this->vmtkRenderer = nullptr;
 	this->OwnRenderer = false;
-	this->PlaneWidgetX = NULL;
-	this->PlaneWidgetY = NULL;
-	this->PlaneWidgetZ = NULL;
-	this->BoxWidget = NULL;
+	this->PlaneWidgetX = nullptr;
+	this->PlaneWidgetY = nullptr;
+	this->PlaneWidgetZ = nullptr;
+	this->BoxWidget = nullptr;
 	this->Image = vtkImageData::New();
+	this->InnervmtkRenderer = false;
 	this->Interactive = true;
 }
 
 vtkvmtkImageVOISelector::~vtkvmtkImageVOISelector()
 {
 	this->CubeSource->Delete();
-	this->CubeSource = NULL;
+	this->CubeSource = nullptr;
 	this->CubeActor->Delete();
-	this->CubeActor = NULL;
+	this->CubeActor = nullptr;
 	this->CroppedImage->Delete();
-	this->CroppedImage = NULL;
+	this->CroppedImage = nullptr;
 	this->Image->Delete();
-	this->Image = NULL;
-	if (this->PlaneWidgetX != NULL)
+	this->Image = nullptr;
+	if (this->PlaneWidgetX != nullptr)
 	{
 		this->PlaneWidgetX->Delete();
-		this->PlaneWidgetX = NULL;
+		this->PlaneWidgetX = nullptr;
 	}
-	if (this->PlaneWidgetY != NULL)
+	if (this->PlaneWidgetY != nullptr)
 	{
 		this->PlaneWidgetY->Delete();
-		this->PlaneWidgetY = NULL;
+		this->PlaneWidgetY = nullptr;
 	}
-	if (this->PlaneWidgetZ != NULL)
+	if (this->PlaneWidgetZ != nullptr)
 	{
 		this->PlaneWidgetZ->Delete();
-		this->PlaneWidgetZ = NULL;
+		this->PlaneWidgetZ = nullptr;
+	}
+	if (this->vmtkRenderer != nullptr && this->InnervmtkRenderer == true)
+	{
+		this->vmtkRenderer->Delete();
+		this->vmtkRenderer = nullptr;
 	}
 }
 
@@ -244,10 +250,10 @@ void vtkvmtkImageVOISelector::Execute()
 	this->CroppedImage->DeepCopy(this->Image);
 	if (this->Interactive == 1)
 	{
-		if (this->vmtkRenderer == NULL)
+		if (this->vmtkRenderer == nullptr)
 		{
 			std::cout << "vmtkRenderer Initial" << std::endl;
-			this->vmtkRenderer = vtkvmtkImageRenderer::New();
+			this->vmtkRenderer = vtkvmtkRenderer::New();
 			this->vmtkRenderer->Initialize();
 			this->OwnRenderer = true;
 		}

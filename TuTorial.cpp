@@ -11,7 +11,7 @@
 
 //VTK-VMTK
 #include "vtkvmtkImageReader.h"
-#include "vtkvmtkImageRender.h"
+#include "vtkvmtkRenderer.h"
 #include "vtkvmtkImageViewer.h"
 #include "vtkvmtkImageWriter.h"
 #include "vtkvmtkImageVOISelector.h"
@@ -28,13 +28,15 @@ VTK_MODULE_INIT(vtkRenderingFreeType);
 void ShowImage(const char* fileName);
 void DicomToVti(const char* InputFileName, const char* OutputFileName);
 void VolumeExtraction(const char* InputFileName, const char* OutputFileName);
-void MarchingCubes(const char* InputFileName, int level, const char* OutputFile);
+void MarchingCubes(const char* InputFileName, int level, const char* OutputFile = NULL);
+void ImageAndSurfaceView(const char* InputFileName, int level);
 
 int main()
 {
-	const char* InputFileName = "C:\\Users\\chenjiaxing\\Desktop\\Python\\body.vti";
+	const char* InputFileName = "C:\\Users\\chenjiaxing\\Desktop\\Python\\Aorta_voi.mha";
 	const char* OutputFileName = "C:\\Users\\chenjiaxing\\Desktop\\Python\\PNG\\body_mc_surface.ply";
-	MarchingCubes(InputFileName, 500, OutputFileName);
+	ImageAndSurfaceView(InputFileName, 500);
+	//MarchingCubes(InputFileName, 500, NULL);
 	//VolumeExtraction(InputFileName, OutputFileName);
 	//DicomToVti(InputFileName, OutputFileName);
 	getchar();
@@ -53,15 +55,15 @@ void ShowImage(const char* fileName)
 	reader->SetInputFileName(fileName);
 	reader->SetUseITKIO(true);
 	reader->Execute();
-	vtkSmartPointer<vtkvmtkImageViewer> viwer =
+	vtkSmartPointer<vtkvmtkImageViewer> viewer =
 		vtkSmartPointer<vtkvmtkImageViewer>::New();
 	if (reader->GetImage() == NULL)
 	{
 		std::cout << "no Image " << std::endl;
 		return;
 	}
-	viwer->SetImage(reader->GetImage());
-	viwer->Execute();
+	viewer->SetImage(reader->GetImage());
+	viewer->Execute();
 }
 
 //Image format conversion
@@ -84,6 +86,7 @@ void DicomToVti(const char* InputFileName, const char* OutputFileName)
 	writer->SetFormat("png");
 	writer->Execute();
 	std::cout << "Success Write the File" << std::endl;
+	writer->Delete();
 }
 
 //Volume of interest (VOI) extraction
@@ -105,31 +108,84 @@ void VolumeExtraction(const char* InputFileName, const char* OutFileName)
 	writer->SetFormat("vtkxml");
 	writer->Execute();
 	std::cout << "Success Write the ExtractionVOI File" << std::endl;
+	selector->Delete();
 }
 
 //MarchingCubes
 void MarchingCubes(const char* InputFileName, int level, const char* OutputFileName)
 {
 	itk::GDCMImageIOFactory::RegisterOneFactory();
+	itk::MetaImageIOFactory::RegisterOneFactory();
 	vtkSmartPointer<vtkvmtkImageReader> reader =
 		vtkSmartPointer<vtkvmtkImageReader>::New();
 	reader->SetInputFileName(InputFileName);
 	reader->SetUseITKIO(true);
 	reader->Execute();
-	vtkvmtkMarchingCubes *mc = vtkvmtkMarchingCubes::New();
-	mc->SetImage(reader->GetImage());
-	mc->SetLevel(level);
-	mc->Execute();
-	/*vtkSmartPointer<vtkvmtkSurfaceWriter> writer =
-		vtkSmartPointer<vtkvmtkSurfaceWriter>::New();
-	writer->SetSurface(mc->GetSurface());
-	writer->SetOutputFileName(OutputFileName);
-	writer->Execute();
-	std::cout << "Success Write the ExtractionVOI File" << std::endl;*/
+	vtkvmtkMarchingCubes *marchingCubes = vtkvmtkMarchingCubes::New();
+	marchingCubes->SetImage(reader->GetImage());
+	marchingCubes->SetLevel(level);
+	marchingCubes->SetConnectivity(true);
+	marchingCubes->Execute();
+	//文件名非空则输出文件
+	if (OutputFileName != NULL)
+	{
+		vtkSmartPointer<vtkvmtkSurfaceWriter> writer =
+			vtkSmartPointer<vtkvmtkSurfaceWriter>::New();
+		writer->SetSurface(marchingCubes->GetSurface());
+		writer->SetOutputFileName(OutputFileName);
+		writer->Execute();
+		std::cout << "Success Write the ExtractionVOI File" << std::endl;
+	}
 	vtkSmartPointer<vtkvmtkSurfaceViewer> surfaceViewer =
 		vtkSmartPointer<vtkvmtkSurfaceViewer>::New();
-	surfaceViewer->SetSurface(mc->GetSurface());
+	surfaceViewer->SetSurface(marchingCubes->GetSurface());
 	surfaceViewer->SetLegend(true);
-	surfaceViewer->SetColorMap("cooltowarm");
+	surfaceViewer->SetColorMap("blackbody");
 	surfaceViewer->Execute();
+	marchingCubes->Delete();
+}
+
+//Show Image And Surface
+void ImageAndSurfaceView(const char* InputFileName, int level)
+{
+	itk::GDCMImageIOFactory::RegisterOneFactory();
+	itk::MetaImageIOFactory::RegisterOneFactory();
+	vtkSmartPointer<vtkvmtkImageReader> reader =
+		vtkSmartPointer<vtkvmtkImageReader>::New();
+	reader->SetInputFileName(InputFileName);
+	reader->SetUseITKIO(true);
+	reader->Execute();
+	vtkvmtkMarchingCubes *marchingCubes = vtkvmtkMarchingCubes::New();
+	marchingCubes->SetImage(reader->GetImage());
+	marchingCubes->SetLevel(level);
+	marchingCubes->SetConnectivity(true);
+	marchingCubes->Execute();
+	//使ImageView和SurfaceView使用同一个Render
+	vtkSmartPointer<vtkvmtkRenderer> renderer = 
+		vtkSmartPointer<vtkvmtkRenderer>::New();
+	renderer->Initialize();
+	vtkSmartPointer<vtkvmtkImageViewer> ImageViewer =
+		vtkSmartPointer<vtkvmtkImageViewer>::New();
+	if (reader->GetImage() == NULL)
+	{
+		std::cout << "no Image " << std::endl;
+		return;
+	}
+	ImageViewer->SetImage(reader->GetImage());
+	ImageViewer->SetvmtkRenderer(renderer);
+	ImageViewer->SetDisplay(false); //设置为false，防止图像提前显示
+	ImageViewer->Execute();
+	vtkSmartPointer<vtkvmtkSurfaceViewer> surfaceViewer =
+		vtkSmartPointer<vtkvmtkSurfaceViewer>::New();
+	surfaceViewer->SetRenderer(renderer);
+	surfaceViewer->SetSurface(marchingCubes->GetSurface());
+	surfaceViewer->SetLegend(true);
+	surfaceViewer->SetColorMap("blackbody");
+	surfaceViewer->SetDisplay(false); //设置为false，防止三维的网格提前显示
+	surfaceViewer->Execute();
+	//将图像和重建的三维网格一起显示
+	//Add Promt Information
+	const char* text = "\n  \'c\',\'Change surface representation.\'";
+	renderer->Render(1, text);
+	marchingCubes->Delete();
 }
