@@ -58,7 +58,7 @@ void KeyPressInteractorStyleSurface::OnKeyPress()
 			key = ""; //the other KeyPress is ignored
 
 		//delete one character
-		if (key == "Backspace" && key == "BackSpace")
+		if (key == "Backspace" || key == "BackSpace")
 		{
 			std::string textInput = this->surfaceViewer->GetRenderer()->GetCurrentTextInput();
 			textInput.pop_back(); //delete the last one character
@@ -116,8 +116,9 @@ vtkvmtkSurfaceViewer::vtkvmtkSurfaceViewer()
 	this->Opacity = 1.0;
 	this->ArrayName = nullptr;
 	this->ScalarRange[0] = 0.0; this->ScalarRange[1] = 0.0;
-	this->ColorMap = new char[strlen("cooltowarm")+1];
-	strcpy_s(this->ColorMap, strlen("cooltowarm")+1, "cooltowarm");
+	//this->ColorMap = new char[strlen("cooltowarm")+1];
+	//strcpy_s(this->ColorMap, strlen("cooltowarm")+1, "cooltowarm");
+	this->SetColorMap("cooltowarm");
 	this->NumberOfColors = 256;
 	this->Legend = false;
 	this->InnervmtkRenderer = false;
@@ -127,11 +128,13 @@ vtkvmtkSurfaceViewer::vtkvmtkSurfaceViewer()
 	this->DisplayCellData = false;
 	this->Color[0] = -1.0; this->Color[1] = -1.0; this->Color[2] = -1.0;
 	this->LineWidth = 1;
-	this->Representation = new char[strlen("surface")+1];
-	strcpy_s(this->Representation, strlen("surface") + 1, "surface");
+	//this->Representation = new char[strlen("surface")+1];
+	//strcpy_s(this->Representation, strlen("surface") + 1, "surface");
+	this->SetRepresentation("surface");
 	this->DisplayTag = false;
-	this->RegionTagArrayName = new char[strlen("RegionTagArray")+1];
-	strcpy_s(this->RegionTagArrayName, strlen("RegionTagArray") + 1, "RegionTagArray");
+	//this->RegionTagArrayName = new char[strlen("RegionTagArray")+1];
+	//strcpy_s(this->RegionTagArrayName, strlen("RegionTagArray") + 1, "RegionTagArray");
+	this->SetRegionTagArrayName("RegionTagArray");
 	this->NumberOfRegions = 0;
 	this->Actor = nullptr;
 	this->labelsActor = nullptr;

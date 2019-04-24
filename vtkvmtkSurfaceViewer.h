@@ -145,9 +145,9 @@ protected:
 	bool InnerSurface;
 	bool Display;
 	double Opacity;
-	char *ArrayName;
+	char *ArrayName = nullptr;
 	double ScalarRange[2];
-	char *ColorMap;
+	char *ColorMap = nullptr;
 	int NumberOfColors;
 	bool Legend;
 	char *LegendTitle;
@@ -156,9 +156,9 @@ protected:
 	bool DisplayCellData;
 	double Color[3];
 	int LineWidth;
-	char *Representation;
+	char *Representation = nullptr;
 	bool DisplayTag;
-	char *RegionTagArrayName;
+	char *RegionTagArrayName = nullptr;
 	int NumberOfRegions;
 	std::set<double> TagSet;
 	vtkActor *Actor;

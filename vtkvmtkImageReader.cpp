@@ -40,15 +40,20 @@ vtkvmtkImageReader::vtkvmtkImageReader()
 		this->DataOrigin[i] = 0.0;
 		this->Flip[i] = 0;
 	}
-	this->DataByteOrder = (char *)"littleendian";
-	this->DataScalarType = (char *)"float";
-	this->DesiredOrientation = (char *)"native";
+	//this->DataByteOrder = (char *)"littleendian";
+	//this->DataScalarType = (char *)"float";
+	//this->DesiredOrientation = (char *)"native";
+	this->SetDataByteOrder("littleendian");
+	this->SetDataScalarType("float");
+	this->SetDesiredOrientation("native");
 	this->HeaderSize = 0;
 	this->FileDimensionality = 3;
 	this->AutoOrientDICOMImage = 1;
-	this->RasToIjkMatrixCoefficients = vtkMatrix4x4::New();
+	//this->RasToIjkMatrixCoefficients = vtkMatrix4x4::New();
+	this->RasToIjkMatrixCoefficients = vtkSmartPointer<vtkMatrix4x4>::New();
 	this->RasToIjkMatrixCoefficients->Identity();
-	this->XyzToRasMatrixCoefficients = vtkMatrix4x4::New();
+	//this->XyzToRasMatrixCoefficients = vtkMatrix4x4::New();
+	this->XyzToRasMatrixCoefficients = vtkSmartPointer<vtkMatrix4x4>::New();
 	this->XyzToRasMatrixCoefficients->Identity();
 }
 
@@ -74,7 +79,24 @@ vtkvmtkImageReader::~vtkvmtkImageReader()
 		delete[] this->InputFilePattern;
 		this->InputFilePattern = nullptr;
 	}
-	if (this->RasToIjkMatrixCoefficients)
+	if (this->DataByteOrder)
+	{
+		delete[] this->DataByteOrder;
+		this->DataByteOrder = nullptr;
+	}
+	if (this->DataScalarType)
+	{
+		delete[] this->DataScalarType;
+		this->DataScalarType = nullptr;
+	}
+	if (this->DesiredOrientation)
+	{
+		delete[] this->DesiredOrientation;
+		this->DesiredOrientation = nullptr;
+	}
+
+	//智能指针的类自动释放
+	/*if (this->RasToIjkMatrixCoefficients)
 	{
 		RasToIjkMatrixCoefficients->Delete();
 		this->RasToIjkMatrixCoefficients = nullptr;
@@ -83,7 +105,7 @@ vtkvmtkImageReader::~vtkvmtkImageReader()
 	{
 		XyzToRasMatrixCoefficients->Delete();
 		this->XyzToRasMatrixCoefficients = nullptr;
-	}
+	}*/
 }
 
 void vtkvmtkImageReader::PrintSelf(ostream& os, vtkIndent indent)
@@ -150,30 +172,39 @@ void vtkvmtkImageReader::Execute()
 
 	if (this->Flip[0] == 1 || this->Flip[1] == 1 || this->Flip[2] == 1)
 	{
-		vtkImageData *temp0 = this->Image;
+		//vtkImageData *temp0 = this->Image;
+		vtkSmartPointer<vtkImageData> temp0 = this->Image;
 		if (this->Flip[0] == 1)
 		{
-			vtkImageFlip *flipFilter = vtkImageFlip::New();
+			//vtkImageFlip *flipFilter = vtkImageFlip::New();
+			vtkSmartPointer<vtkImageFlip> flipFilter =
+				vtkSmartPointer<vtkImageFlip>::New();
 			flipFilter->SetInputData(this->Image);
 			flipFilter->SetFilteredAxis(0);
 			flipFilter->Update();
 			temp0 = flipFilter->GetOutput();
 		}
 
-		vtkImageData* temp1 = temp0;
+		//vtkImageData* temp1 = temp0;
+		vtkSmartPointer<vtkImageData> temp1 = temp0;
 		if (this->Flip[1] == 1)
 		{
-			vtkImageFlip *flipFilter = vtkImageFlip::New();
+			//vtkImageFlip *flipFilter = vtkImageFlip::New();
+			vtkSmartPointer<vtkImageFlip> flipFilter =
+				vtkSmartPointer<vtkImageFlip>::New();
 			flipFilter->SetInputData(temp0);
 			flipFilter->SetFilteredAxis(1);
 			flipFilter->Update();
 			temp1 = flipFilter->GetOutput();
 		}
 
-		vtkImageData* temp2 = temp1;
+		//vtkImageData* temp2 = temp1;
+		vtkSmartPointer<vtkImageData> temp2 = temp1;
 		if (this->Flip[2] == 1)
 		{
-			vtkImageFlip *flipFilter = vtkImageFlip::New();
+			//vtkImageFlip *flipFilter = vtkImageFlip::New();
+			vtkSmartPointer<vtkImageFlip> flipFilter =
+				vtkSmartPointer<vtkImageFlip>::New();
 			flipFilter->SetInputData(temp1);
 			flipFilter->SetFilteredAxis(2);
 			flipFilter->Update();
@@ -193,7 +224,9 @@ void vtkvmtkImageReader::ReadVTKXMLImageFile()
 	if (this->InputFileName == nullptr)
 		std::cerr << "Error: no InputFileName." << std::endl;
 	std::cout << "Reading VTK XML image file." << std::endl;
-	vtkXMLImageDataReader *reader = vtkXMLImageDataReader::New();
+	//vtkXMLImageDataReader *reader = vtkXMLImageDataReader::New();
+	vtkSmartPointer<vtkXMLImageDataReader> reader =
+		vtkSmartPointer<vtkXMLImageDataReader>::New();
 	reader->SetFileName(this->InputFileName);
 	reader->Update();
 	this->Image = reader->GetOutput();
@@ -204,7 +237,9 @@ void vtkvmtkImageReader::ReadVTKImageFile()
 	if (this->InputFileName == nullptr)
 		std::cerr << "Error: no InputFileName." << std::endl;
 	std::cout << "Reading VTK image file." << std::endl;
-	vtkStructuredPointsReader *reader = vtkStructuredPointsReader::New();
+	//vtkStructuredPointsReader *reader = vtkStructuredPointsReader::New();
+	vtkSmartPointer<vtkStructuredPointsReader> reader =
+		vtkSmartPointer<vtkStructuredPointsReader>::New();
 	reader->SetFileName(this->InputFileName);
 	reader->Update();
 	this->Image = reader->GetOutput();
@@ -223,7 +258,9 @@ void vtkvmtkImageReader::ReadRawImageFile()
 		std::cerr << "Error: no InputFileName or InputFilePrefix." << std::endl;
 	}
 	std::cout << "Reading RAW image file." << std::endl;
-	vtkImageReader * reader = vtkImageReader::New();
+	//vtkImageReader * reader = vtkImageReader::New();
+	vtkSmartPointer<vtkImageReader> reader =
+		vtkSmartPointer<vtkImageReader>::New();
 	if (this->InputFileName != nullptr)
 		reader->SetFileName(this->InputFileName);
 	else // Not InputFileName, but have FilePrefix or FilePattern
@@ -235,25 +272,25 @@ void vtkvmtkImageReader::ReadRawImageFile()
 			reader->SetFilePattern("%s%04d.png");
 	}
 	reader->SetFileDimensionality(this->FileDimensionality);
-	if (DataByteOrder == "littleendian")
+	if (!strcmp(this->DataByteOrder, "littleendian"))
 		reader->SetDataByteOrderToLittleEndian();
-	else if (DataByteOrder == "bigendian")
+	else if (!strcmp(this->DataByteOrder, "bigendian"))
 		reader->SetDataByteOrderToBigEndian();
 	reader->SetDataExtent(this->DataExtent);
 	reader->SetDataSpacing(this->DataSpacing);
 	reader->SetDataOrigin(this->DataOrigin);
 	reader->SetHeaderSize(this->HeaderSize);
-	if (this->DataScalarType == "float")
+	if (!strcmp(this->DataScalarType, "float"))
 		reader->SetDataScalarTypeToFloat();
-	else if (this->DataScalarType == "double")
+	else if (!strcmp(this->DataScalarType, "double"))
 		reader->SetDataScalarTypeToDouble();
-	else if (this->DataScalarType == "int")
+	else if (!strcmp(this->DataScalarType, "int"))
 		reader->SetDataScalarTypeToInt();
-	else if (this->DataScalarType == "short")
+	else if (!strcmp(this->DataScalarType, "short"))
 		reader->SetDataScalarTypeToShort();
-	else if (this->DataScalarType == "ushort")
+	else if (!strcmp(this->DataScalarType, "ushort"))
 		reader->SetDataScalarTypeToUnsignedShort();
-	else if (this->DataScalarType == "uchar")
+	else if (!strcmp(this->DataScalarType, "uchar"))
 		reader->SetDataScalarTypeToUnsignedChar();
 	reader->Update();
 	this->Image = reader->GetOutput();
@@ -264,7 +301,9 @@ void vtkvmtkImageReader::ReadMetaImageFile()
 	if (this->InputFileName == nullptr)
 		std::cerr << "Error: no InputFileName." << std::endl;
 	std::cout << "Reading meta image file." << std::endl;
-	vtkMetaImageReader *reader = vtkMetaImageReader::New();
+	//vtkMetaImageReader *reader = vtkMetaImageReader::New();
+	vtkSmartPointer<vtkMetaImageReader> reader =
+		vtkSmartPointer<vtkMetaImageReader>::New();
 	reader->SetFileName(this->InputFileName);
 	reader->Update();
 	this->Image = reader->GetOutput();
@@ -282,7 +321,9 @@ void vtkvmtkImageReader::ReadTIFFImageFile()
 		std::cerr << "Error: no InputFileName or InputFilePrefix." << std::endl;
 	}
 	std::cout << "Reading TIFF image file." << std::endl;
-	vtkTIFFReader *reader = vtkTIFFReader::New();
+	//vtkTIFFReader *reader = vtkTIFFReader::New();
+	vtkSmartPointer<vtkTIFFReader> reader =
+		vtkSmartPointer<vtkTIFFReader>::New();
 	if (this->InputFileName != nullptr)
 		reader->SetFileName(this->InputFileName);
 	else // Not InputFileName, but have FilePrefix or FilePattern
@@ -312,7 +353,9 @@ void vtkvmtkImageReader::ReadPNGImageFile()
 		std::cerr << "Error: no InputFileName or InputFilePrefix." << std::endl;
 	}
 	std::cout << "Reading PNG image file." << std::endl;
-	vtkPNGReader *reader = vtkPNGReader::New();
+	//vtkPNGReader *reader = vtkPNGReader::New();
+	vtkSmartPointer<vtkPNGReader> reader =
+		vtkSmartPointer<vtkPNGReader>::New();
 	if (this->InputFileName != nullptr)
 		reader->SetFileName(this->InputFileName);
 	else // Not InputFileName, but have FilePrefix or FilePattern
@@ -334,24 +377,31 @@ void vtkvmtkImageReader::ReadITKIO()
 {
 	if (this->InputFileName == nullptr)
 		std::cout << "Error: no InputFileName." << std::endl;
-	vtkvmtkITKArchetypeImageSeriesScalarReader *reader = vtkvmtkITKArchetypeImageSeriesScalarReader::New();
+	//vtkvmtkITKArchetypeImageSeriesScalarReader *reader = vtkvmtkITKArchetypeImageSeriesScalarReader::New();
+	vtkSmartPointer<vtkvmtkITKArchetypeImageSeriesScalarReader> reader =
+		vtkSmartPointer<vtkvmtkITKArchetypeImageSeriesScalarReader>::New();
 	reader->SetArchetype(this->InputFileName);
 	reader->SetDefaultDataSpacing(this->DataSpacing);
 	reader->SetDefaultDataOrigin(this->DataOrigin);
 	reader->SetOutputScalarTypeToNative();
-	if (DesiredOrientation == "native")
+	if (!strcmp(this->DesiredOrientation, "native"))
 		reader->SetDesiredCoordinateOrientationToNative();
-	else if (DesiredOrientation == "axial")
+	else if (!strcmp(this->DesiredOrientation, "axial"))
 		reader->SetDesiredCoordinateOrientationToAxial();
-	else if (DesiredOrientation == "coronal")
+	else if (!strcmp(this->DesiredOrientation, "coronal"))
 		reader->SetDesiredCoordinateOrientationToCoronal();
-	else if (DesiredOrientation == "sagittal")
+	else if (!strcmp(this->DesiredOrientation, "sagittal"))
 		reader->SetDesiredCoordinateOrientationToSagittal();
 	reader->SetSingleFile(0);
 	reader->Update();
-	this->Image = vtkImageData::New();
-	this->Image->DeepCopy(reader->GetOutput());
-	vtkMatrix4x4 *matrix = reader->GetRasToIjkMatrix();
+	//this->Image = vtkImageData::New();
+
+	//this->Image = vtkSmartPointer<vtkImageData>::New();
+	//this->Image->DeepCopy(reader->GetOutput());
+	this->Image = reader->GetOutput();
+
+	//vtkMatrix4x4 *matrix = reader->GetRasToIjkMatrix();
+	vtkSmartPointer<vtkMatrix4x4> matrix = reader->GetRasToIjkMatrix();
 	const double elements[16] = {
 		   matrix->GetElement(0, 0), matrix->GetElement(0, 1), matrix->GetElement(0, 2), matrix->GetElement(0, 3),
 		   matrix->GetElement(1, 0), matrix->GetElement(1, 1), matrix->GetElement(1, 2), matrix->GetElement(1, 3),
@@ -373,7 +423,9 @@ void vtkvmtkImageReader::ReadITKIO()
 	matrix->SetElement(1, 3, 0.0);
 	matrix->SetElement(2, 3, 0.0);
 
-	vtkTransform *transform = vtkTransform::New();
+	//vtkTransform *transform = vtkTransform::New();
+	vtkSmartPointer<vtkTransform> transform =
+		vtkSmartPointer<vtkTransform>::New();
 	transform->PostMultiply();
 	transform->Translate(translationToOrigin);
 	transform->Concatenate(matrix);

@@ -86,8 +86,12 @@ protected:
 	vtkvmtkImageFeature();
 	~vtkvmtkImageFeature();
 	
-	vtkImageData *Image;
-	vtkImageData *FeatureImage;
+	//vtkImageData *Image;
+	//vtkImageData *FeatureImage;
+
+	//÷«ƒ‹÷∏’Î
+	vtkSmartPointer<vtkImageData> Image;
+	vtkSmartPointer<vtkImageData> FeatureImage;
 
 	//Inner Method
 	void BuildVTKGradientBasedFeatureImage();
@@ -98,7 +102,7 @@ protected:
 	int Dimensionality;
 	double DerivativeSigma;
 	bool SigmoidRemapping;
-	char *FeatureImageType;
+	char *FeatureImageType = nullptr;
 	double UpwindFactor;
 	int FWHMRadius[3];
 	double FWHMBackgroundValue;

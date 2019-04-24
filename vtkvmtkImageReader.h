@@ -112,35 +112,46 @@ public:
 	//the input image
 	//vtkSetObjectMacro(Image, vtkImageData);
 	//vtkGetObjectMacro(Image, vtkImageData);
-	void SetImage(vtkImageData* data) { this->Image = data; };
-	vtkImageData* GetImage() { return this->Image; };
+
+	//void SetImage(vtkImageData* data) { this->Image = data; };
+	//vtkImageData* GetImage() { return this->Image; };
+
+	void SetImage(vtkSmartPointer<vtkImageData> data) { this->Image = data; };
+	vtkSmartPointer<vtkImageData> GetImage() { return this->Image; };
 
 protected:
 	vtkvmtkImageReader();
 	~vtkvmtkImageReader();
 	//Input Arguments
-	char *Format;
 	bool GuessFormat;
 	bool UseITKIO;
-	char* InputFileName;
-	char* InputFilePrefix;
-	char* InputFilePattern;
-	vtkImageData *Image;
 	int DataExtent[6];
 	double DataSpacing[3];
 	double DataOrigin[3];
-	char* DesiredOrientation;
-	char* DataByteOrder;
-	char* DataScalarType;
 	int HeaderSize = 0;
 	int FileDimensionality;
 	bool Flip[3];
 	bool AutoOrientDICOMImage;
 
+	char *Format = nullptr;
+	char *InputFileName = nullptr;
+	char *InputFilePrefix = nullptr;
+	char *InputFilePattern = nullptr;
+	char *DesiredOrientation = nullptr;
+	char *DataByteOrder = nullptr;
+	char *DataScalarType = nullptr;
+
 	//OutputArguments
-	vtkImageData *Output;
-	vtkMatrix4x4* RasToIjkMatrixCoefficients;
-	vtkMatrix4x4* XyzToRasMatrixCoefficients;
+	//vtkImageData *Image;
+	//vtkImageData *Output;
+	//vtkMatrix4x4* RasToIjkMatrixCoefficients;
+	//vtkMatrix4x4* XyzToRasMatrixCoefficients;
+
+	//÷«ƒ‹÷∏’Î
+	vtkSmartPointer<vtkImageData> Image;
+	vtkSmartPointer<vtkImageData> Output;
+	vtkSmartPointer<vtkMatrix4x4> RasToIjkMatrixCoefficients;
+	vtkSmartPointer<vtkMatrix4x4> XyzToRasMatrixCoefficients;
 
 	//Read Image Method
 	void ReadVTKXMLImageFile();

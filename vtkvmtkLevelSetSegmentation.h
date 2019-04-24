@@ -39,6 +39,8 @@ Modified: adapted from https://github.com/vmtk/vmtk/blob/master/vmtkScripts/vmtk
 //VMTK-NEW
 #include "vtkvmtkRenderer.h"
 #include "vtkvmtkSurfaceViewer.h"
+#include "vtkvmtkImageSeeder.h"
+#include "vtkvmtkImageInitialization.h"
 
 static void LevelSetCallbackFunction(vtkObject* caller, long unsigned int eventId,
 	void* clientData, void* callData);
@@ -53,19 +55,24 @@ public:
 
 	//vtkImageData
 	//浅拷贝
-	void SetImage(vtkImageData* data) { this->Image = data; };
+	//void SetImage(vtkImageData* data) { this->Image = data; };
+	void SetImage(vtkSmartPointer<vtkImageData> data) { this->Image = data; };
 
 	//featureimage
-	void SetFeatureImage(vtkImageData* data) { this->FeatureImage->DeepCopy(data); };
+	//void SetFeatureImage(vtkImageData* data) { this->FeatureImage->DeepCopy(data); };
+	void SetFeatureImage(vtkSmartPointer<vtkImageData> data) { this->FeatureImage = data; };
 
 	//initializationimage
-	void SetInitializationImage(vtkImageData* data) { this->InitializationImage->DeepCopy(data); };
+	//void SetInitializationImage(vtkImageData* data) { this->InitializationImage->DeepCopy(data); };
+	void SetInitializationImage(vtkSmartPointer<vtkImageData> data) { this->InitializationImage = data; };
 
 	//initiallevelsets
-	void SetInitialLevelSets(vtkImageData* data) { this->InitialLevelSets->DeepCopy(data); };
+	//void SetInitialLevelSets(vtkImageData* data) { this->InitialLevelSets->DeepCopy(data); };
+	void SetInitialLevelSets(vtkSmartPointer<vtkImageData> data) { this->InitialLevelSets = data; };
 
 	//levelsets
-	void SetLevelSets(vtkImageData* data) { this->LevelSets->DeepCopy(data); };
+	//void SetLevelSets(vtkImageData* data) { this->LevelSets->DeepCopy(data); };
+	void SetLevelSets(vtkSmartPointer<vtkImageData> data) { this->LevelSets = data; };
 
 	//levelsetstype ["geodesic","curves","threshold","laplacian"]
 	vtkSetStringMacro(LevelSetsType);
@@ -92,7 +99,7 @@ public:
 	vtkSetMacro(UpwindFactor, double);
 
 	//fwhmradius
-	vtkSetVector3Macro(FWHMRadius, double);
+	vtkSetVector3Macro(FWHMRadius, int);
 
 	//fwhmbackgroundvalue
 	vtkSetMacro(FWHMBackgroundValue, double);
@@ -131,7 +138,8 @@ protected:
 	vtkvmtkLevelSetSegmentation();
 	~vtkvmtkLevelSetSegmentation();
 	//Input Arguments
-	vtkImageData *Image;
+	//vtkImageData *Image;
+	vtkSmartPointer<vtkImageData> Image;
 	//没有指针的话, vmtkRenderer会自动调用构造函数
 	vtkvmtkRenderer *vmtkRenderer; 
 	//面绘网格的显示
@@ -139,12 +147,19 @@ protected:
 	bool OwnRenderer;
 	bool InnervmtkRenderer;
 	bool DeepCopyImage;
-	vtkImageData *InitialLevelSets;
-	vtkImageData *InitializationImage;
-	vtkImageData *FeatureImage;
-	vtkImageData *LevelSetsInput;
-	vtkImageData *LevelSetsOutput;
-	vtkImageData *LevelSets;
+	//vtkImageData *InitialLevelSets;
+	//vtkImageData *InitializationImage;
+	//vtkImageData *FeatureImage;
+	//vtkImageData *LevelSetsInput;
+	//vtkImageData *LevelSetsOutput;
+	//vtkImageData *LevelSets;
+	//智能指针
+	vtkSmartPointer<vtkImageData> InitialLevelSets;
+	vtkSmartPointer<vtkImageData> InitializationImage;
+	vtkSmartPointer<vtkImageData> FeatureImage;
+	vtkSmartPointer<vtkImageData> LevelSetsInput;
+	vtkSmartPointer<vtkImageData> LevelSetsOutput;
+	vtkSmartPointer<vtkImageData> LevelSets;
 	double UpperThreshold;
 	double LowerThreshold;
 	int NumberOfIterations;
@@ -157,21 +172,25 @@ protected:
 	double FeatureDerivativeSigma;
 	bool NegateForInitialization;
 	bool SigmoidRemapping;
-	char* LevelSetsType;
-	char* FeatureImageType;
+	char* LevelSetsType = nullptr;
+	char* FeatureImageType = nullptr;
 	double UpwindFactor;
-	double FWHMRadius[3];
+	int FWHMRadius[3];
 	double FWHMBackgroundValue;
 	double EdgeWeight;
 	int SmoothingIterations;
 	double SmoothingTimeStep;
 	double SmoothingConductance;
 
+	//vtkvmtkImageSeeder *ImageSeeder;
+	vtkSmartPointer<vtkvmtkImageSeeder> ImageSeeder;
+	vtkSmartPointer<vtkvmtkImageInitialization> vmtkImageInitialization;
+
 	const char* InputText(const char*queryString, int (vtkvmtkLevelSetSegmentation::*validator)(const char* text)=nullptr);
 
 	//Inner Method
 	int ThresholdValidator(const char* text);
-	int ThresholdInput(const char* queryString);
+	double ThresholdInput(const char* queryString);
 	void LevelSetEvolution();
 	void MergeLevelSet();
 	void DisplayLevelSetSurface(vtkImageData *levelSets, double value = 0.0);

@@ -9,12 +9,17 @@
 
 //STD
 
-
 //VMTK-Src
 #include <vtkvmtkGeodesicActiveContourLevelSetImageFilter.h>
 #include <vtkvmtkCurvesLevelSetImageFilter.h>
 #include <vtkvmtkThresholdSegmentationLevelSetImageFilter.h>
 #include <vtkvmtkLaplacianSegmentationLevelSetImageFilter.h>
+
+//VMTK-New
+#include "vtkvmtkImageFeature.h"
+
+//Windows
+#include "WindowsAPI.h"
 
 vtkStandardNewMacro(vtkvmtkLevelSetSegmentation);
 
@@ -25,12 +30,18 @@ vtkvmtkLevelSetSegmentation::vtkvmtkLevelSetSegmentation()
 	this->SurfaceViewer = nullptr;
 	this->OwnRenderer = false;
 	this->DeepCopyImage = false;
-	this->InitialLevelSets = vtkImageData::New();
+	/*this->InitialLevelSets = vtkImageData::New();
 	this->InitializationImage = vtkImageData::New();
 	this->FeatureImage = vtkImageData::New();
 	this->LevelSetsInput = vtkImageData::New();
 	this->LevelSetsOutput = vtkImageData::New();
-	this->LevelSets = vtkImageData::New();;
+	this->LevelSets = vtkImageData::New();;*/
+	this->InitialLevelSets = nullptr;
+	this->InitializationImage = nullptr;
+	this->FeatureImage = nullptr;
+	this->LevelSetsInput = nullptr;
+	this->LevelSetsOutput = nullptr;
+	this->LevelSets = nullptr;
 	this->UpperThreshold = 0.0;
 	this->LowerThreshold = 0.0;
 	this->NumberOfIterations = 0;
@@ -46,27 +57,30 @@ vtkvmtkLevelSetSegmentation::vtkvmtkLevelSetSegmentation()
 	this->SetLevelSetsType("geodesic");
 	this->SetFeatureImageType("gradient");
 	this->UpwindFactor = 1.0;
-	this->FWHMRadius[0] = 1.0; this->FWHMRadius[1] = 1.0; this->FWHMRadius[2] = 1.0;
+	this->FWHMRadius[0] = 1; this->FWHMRadius[1] = 1; this->FWHMRadius[2] = 1;
 	this->FWHMBackgroundValue = 0.0;
 	this->EdgeWeight = 0.0;
 	this->SmoothingIterations = 5;
 	this->SmoothingTimeStep = 0.1;
 	this->SmoothingConductance = 0.8;
+
+	this->ImageSeeder = nullptr;
+	this->vmtkImageInitialization = nullptr;
 }
 
 vtkvmtkLevelSetSegmentation::~vtkvmtkLevelSetSegmentation()
 {
-	if (this->Image != nullptr && this->DeepCopyImage == true)
+	/*if (this->Image != nullptr && this->DeepCopyImage == true)
 	{
 		this->Image->Delete();
 		this->Image = nullptr;
-	}
+	}*/
 	if (this->vmtkRenderer != nullptr && this->InnervmtkRenderer == true)
 	{
 		this->vmtkRenderer->Delete();
 		this->vmtkRenderer = nullptr;
 	}
-	if (this->InitialLevelSets)
+	/*if (this->InitialLevelSets)
 	{
 		this->InitialLevelSets->Delete();
 		this->InitialLevelSets = nullptr;
@@ -95,7 +109,7 @@ vtkvmtkLevelSetSegmentation::~vtkvmtkLevelSetSegmentation()
 	{
 		this->LevelSets->Delete();
 		this->LevelSets = nullptr;
-	}
+	}*/
 	if (this->SurfaceViewer)
 	{
 		this->SurfaceViewer->Delete();
@@ -105,6 +119,12 @@ vtkvmtkLevelSetSegmentation::~vtkvmtkLevelSetSegmentation()
 	this->LevelSetsType = nullptr;
 	delete[] this->FeatureImageType;
 	this->FeatureImageType = nullptr;
+
+	/*if (this->ImageSeeder)
+	{
+		this->ImageSeeder->Delete();
+		this->ImageSeeder = nullptr;
+	}*/
 }
 
 
@@ -125,14 +145,9 @@ int vtkvmtkLevelSetSegmentation::ThresholdValidator(const char* text)
 		this->vmtkRenderer->Render();
 		return 0;
 	}
-	if (atoi(text) == 0)
+	if (abs(atof(text) - 0.0) < 1e-06)
 	{
 		std::cout << "Input text is error!" << std::endl;
-		return 0;
-	}
-	if (atoi(text) == -1)
-	{
-		std::cout << "The Input text is too large!" << std::endl;
 		return 0;
 	}
 	return 1;
@@ -164,14 +179,14 @@ const char* vtkvmtkLevelSetSegmentation::InputText(const char*queryString,
 }
 
 //获取输入的阈值
-int vtkvmtkLevelSetSegmentation::ThresholdInput(const char* queryString)
+double vtkvmtkLevelSetSegmentation::ThresholdInput(const char* queryString)
 {
 	//调用类中的程序员函数，加类名前缀
 	const char* thresholdString = this->InputText(queryString, &vtkvmtkLevelSetSegmentation::ThresholdValidator);
 
-	int threshold = 0;
-	if (strcmp(thresholdString, "n")) //not equal
-		threshold = atoi(thresholdString);
+	double threshold = 0.0;
+	if (strcmp(thresholdString, "n")) //not equal != 
+		threshold = atof(thresholdString);
 
 	return threshold;
 }
@@ -203,6 +218,7 @@ void vtkvmtkLevelSetSegmentation::LevelSetEvolution()
 		levelSetsGeodesic->Update();
 
 		//this->LevelSetsOutput = vtkImageData::New(); No need
+		this->LevelSetsOutput = vtkSmartPointer<vtkImageData>::New();
 		this->LevelSetsOutput->DeepCopy(levelSetsGeodesic->GetOutput());
 	}
 	else if (!strcmp(this->LevelSetsType, "curves"))
@@ -228,6 +244,7 @@ void vtkvmtkLevelSetSegmentation::LevelSetEvolution()
 		levelSetsCurves->AddObserver(vtkCommand::ProgressEvent, ProgressCallCommand);
 		levelSetsCurves->Update();
 
+		this->LevelSetsOutput = vtkSmartPointer<vtkImageData>::New();
 		this->LevelSetsOutput->DeepCopy(levelSetsCurves->GetOutput());
 	}
 	else if (!strcmp(this->LevelSetsType, "threshold"))
@@ -267,6 +284,7 @@ void vtkvmtkLevelSetSegmentation::LevelSetEvolution()
 		levelSetsThreshold->AddObserver(vtkCommand::ProgressEvent, ProgressCallCommand);
 		levelSetsThreshold->Update();
 
+		this->LevelSetsOutput = vtkSmartPointer<vtkImageData>::New();
 		this->LevelSetsOutput->DeepCopy(levelSetsThreshold->GetOutput());
 	}
 	else if (!strcmp(this->LevelSetsType, "laplacian"))
@@ -289,6 +307,7 @@ void vtkvmtkLevelSetSegmentation::LevelSetEvolution()
 		levelSetsLaplacian->AddObserver(vtkCommand::ProgressEvent, ProgressCallCommand);
 		levelSetsLaplacian->Update();
 
+		this->LevelSetsOutput = vtkSmartPointer<vtkImageData>::New();
 		this->LevelSetsOutput->DeepCopy(levelSetsLaplacian->GetOutput());
 	}
 	else
@@ -303,8 +322,10 @@ void vtkvmtkLevelSetSegmentation::LevelSetEvolution()
 void vtkvmtkLevelSetSegmentation::MergeLevelSet()
 {
 	//初始时点的数目为零
-	if (this->LevelSets->GetNumberOfPoints() == 0)
-		this->LevelSets->DeepCopy(this->LevelSetsOutput);
+	//if (this->LevelSets->GetNumberOfPoints() == 0)
+	//	this->LevelSets->DeepCopy(this->LevelSetsOutput);
+	if (this->LevelSets == nullptr)
+		this->LevelSets = this->LevelSetsOutput;
 	else
 	{
 		vtkSmartPointer<vtkImageMathematics> minFilter = 
@@ -313,7 +334,8 @@ void vtkvmtkLevelSetSegmentation::MergeLevelSet()
 		minFilter->SetInput1Data(this->LevelSets);
 		minFilter->SetInput2Data(this->LevelSetsOutput);
 		minFilter->Update();
-		this->LevelSets->DeepCopy(minFilter->GetOutput());
+		//this->LevelSets->DeepCopy(minFilter->GetOutput());
+		this->LevelSets = minFilter->GetOutput();
 	}	
 }
 
@@ -329,7 +351,8 @@ void vtkvmtkLevelSetSegmentation::DisplayLevelSetSurface(vtkImageData *levelSets
 	std::cout << "Displaying.\n" << std::endl;
 
 	//SurfaceViewer在本类（LevelSet)的Exe中定义
-	this->SurfaceViewer->SetInputSurface(marchingCubes->GetOutput());
+	//this->SurfaceViewer->SetInputSurface(marchingCubes->GetOutput());
+	this->SurfaceViewer->SetSurface(marchingCubes->GetOutput());
 	this->SurfaceViewer->SetDisplay(false);
 	this->SurfaceViewer->SetOpacity(0.5);
 	//通过调用Execute来调用BuildView,BuilView为类的保护方法
@@ -384,22 +407,175 @@ void vtkvmtkLevelSetSegmentation::Execute()
 	vtkSmartPointer<vtkImageCast> cast = 
 		vtkSmartPointer<vtkImageCast>::New();
 	cast->SetInputData(this->Image);
-	cast->SetOutputScalarTypeToFloat();
+	cast->SetOutputScalarTypeToFloat(); //DICOM图像内存占用翻了三倍
 	cast->Update();
-	this->Image = vtkImageData::New();
-	this->Image->DeepCopy(cast->GetOutput());
-	this->DeepCopyImage = true;
 
-	if (this->InitializationImage->GetNumberOfPoints() == 0)
-		this->InitializationImage->DeepCopy(this->Image);
+	//this->Image = vtkImageData::New();
+	//this->Image->DeepCopy(cast->GetOutput());
+	//this->DeepCopyImage = true;
 
-	if (this->FeatureImage->GetNumberOfPoints() == 0)
+	this->Image = cast->GetOutput();
+
+
+	//if (this->InitializationImage->GetNumberOfPoints() == 0)
+	//	this->InitializationImage->DeepCopy(this->Image);
+	if (this->InitializationImage == nullptr)
+		this->InitializationImage = this->Image;
+
+	//如果特征图像为空
+	//if (this->FeatureImage->GetNumberOfPoints() == 0)
+	if (this->FeatureImage == nullptr)
 	{
-		if(!strcmp(this->LevelSetsType, "geodesic") ||
+		if (!strcmp(this->LevelSetsType, "geodesic") ||
 			!strcmp(this->LevelSetsType, "curves"))
 		{
-
+			vtkSmartPointer<vtkvmtkImageFeature> imageFeatures =
+				vtkSmartPointer<vtkvmtkImageFeature>::New();
+			imageFeatures->SetImage(this->Image);
+			imageFeatures->SetFeatureImageType(this->FeatureImageType);
+			imageFeatures->SetSigmoidRemapping(this->SigmoidRemapping);
+			imageFeatures->SetDerivativeSigma(this->FeatureDerivativeSigma);
+			imageFeatures->SetUpwindFactor(this->UpwindFactor);
+			imageFeatures->SetFWHMRadius(this->FWHMRadius);
+			imageFeatures->SetFWHMBackgroundValue(this->FWHMBackgroundValue);
+			imageFeatures->Execute();
+			//this->FeatureImage->DeepCopy(imageFeatures->GetFeatureImage());
+			this->FeatureImage = imageFeatures->GetFeatureImage();
 		}
+		else if (!strcmp(this->LevelSetsType, "threshold") ||
+			!strcmp(this->LevelSetsType, "laplacian"))
+			//this->FeatureImage->DeepCopy(this->Image);
+			this->FeatureImage = this->Image;
+		else
+			std::cout << "Unsupported LevelSetsType" << std::endl;
+	}
+
+	if (this->NumberOfIterations != 0)
+	{
+		//this->LevelSetsInput->DeepCopy(this->InitialLevelSets);
+		this->LevelSetsInput = this->InitialLevelSets;
+		this->LevelSetEvolution();
+		this->MergeLevelSet();
+		return;
+	}
+
+	if (this->vmtkRenderer == nullptr)
+	{
+		this->vmtkRenderer = vtkvmtkRenderer::New();
+		this->vmtkRenderer->Initialize();
+		this->InnervmtkRenderer = true;
+	}
+	
+	//this->ImageSeeder = vtkvmtkImageSeeder::New();
+	this->ImageSeeder = vtkSmartPointer<vtkvmtkImageSeeder>::New();
+	this->ImageSeeder->SetRenderer(this->vmtkRenderer);
+	//#this->ImageSeeder->SetImage(this->Image);
+	this->ImageSeeder->SetImage(this->InitializationImage);
+	this->ImageSeeder->SetDisplay(false);
+	this->ImageSeeder->Execute();
+	//#this->ImageSeeder->SetDisplay(true);
+	this->ImageSeeder->BuildView();
+
+	this->SurfaceViewer = vtkvmtkSurfaceViewer::New();
+	this->SurfaceViewer->SetRenderer(this->vmtkRenderer);
+
+	//水平集非空
+	//if (this->LevelSets->GetNumberOfPoints() != 0)
+	if (this->LevelSets != nullptr)
+		this->DisplayLevelSetSurface(this->LevelSets, 0.0);
+
+	this->vmtkImageInitialization = vtkSmartPointer<vtkvmtkImageInitialization>::New();
+	//this->vmtkImageInitialization->SetImage(this->Image);
+	this->vmtkImageInitialization->SetImage(this->InitializationImage);
+	this->vmtkImageInitialization->SetvmtkRenderer(this->vmtkRenderer);
+	this->vmtkImageInitialization->SetImageSeeder(this->ImageSeeder);
+	this->vmtkImageInitialization->SetSurfaceViewer(this->SurfaceViewer);
+	this->vmtkImageInitialization->SetNegateImage(this->NegateForInitialization);
+
+	bool endSegmentation = false;
+	while (!endSegmentation)
+	{
+		if (this->InitialLevelSets == nullptr)
+		//if (this->InitialLevelSets->GetNumberOfPoints() == 0)
+		{
+			this->vmtkImageInitialization->Execute();
+			this->LevelSetsInput = this->vmtkImageInitialization->GetInitialLevelSets();
+			//this->IsoSurfaceValue = this->vmtkImageInitialization->GetIsoSurfaceValue();
+			this->vmtkImageInitialization->SetInitialLevelSets(nullptr);
+			//this->vmtkImageInitialization->SetIsoSurfaceValue(0.0);
+			this->IsoSurfaceValue = 0.0;
+		}
+		else
+		{
+			this->LevelSetsInput = this->InitialLevelSets;
+			this->InitialLevelSets = nullptr;
+			this->DisplayLevelSetSurface(this->LevelSetsInput, this->IsoSurfaceValue);
+		}
+
+		bool endEvolution = false;
+		std::string queryString = "";
+		const char *inputString = "";
+		while (!endEvolution)
+		{
+			queryString = "Please input parameters (type return to accept current values, \'e\' to end, \'q\' to quit):\n";
+			queryString += "NumberOfIterations(" + std::to_string(this->NumberOfIterations) +  ")\n";
+			queryString += "PropagationScaling(" + std::to_string(this->PropagationScaling) +  ")\n";
+			queryString += "CurvatureScaling(" + std::to_string(this->CurvatureScaling) + ")\n";
+			queryString += "AdvectionScaling(" + std::to_string(this->AdvectionScaling) + ")\n";
+			inputString = this->InputText(queryString.c_str(), &vtkvmtkLevelSetSegmentation::EvolutionParametersValidator);
+			if (!strcmp(inputString, "q"))
+				return;
+			else if (!strcmp(inputString, "e"))
+				endEvolution = true;
+			else if (strcmp(inputString, "")) // !=
+			{
+				this->strip(inputString); //去除前后空格
+				std::vector<std::string> splitInputString = this->split(inputString, " ");  //以空格分割字符串
+				if (splitInputString.size() == 1)
+					this->NumberOfIterations = atoi(splitInputString[0].c_str());
+				else if (splitInputString.size() == 4)
+				{
+					this->NumberOfIterations = atoi(splitInputString[0].c_str());
+					this->PropagationScaling = atof(splitInputString[1].c_str());
+					this->CurvatureScaling = atof(splitInputString[2].c_str());
+					this->AdvectionScaling = atof(splitInputString[3].c_str());
+				}
+				else
+				{
+					std::cout << "Wrong number of parameters." << std::endl;
+					continue;
+				}
+			}
+			else
+			{
+				std::cout << "bug In vtkvmtkLevelSetSegmentation 521 line " << std::endl;
+			}
+			if (endEvolution)
+				break;
+			this->LevelSetEvolution();
+			this->DisplayLevelSetSurface(this->LevelSetsOutput);
+
+			queryString = "Accept result? (y/n): ";
+			inputString = this->InputText(queryString.c_str(), &vtkvmtkLevelSetSegmentation::YesNoValidator);
+			if (!strcmp(inputString, "y"))
+				endEvolution = true;
+			else if (!strcmp(inputString, "n"))
+				endEvolution = false;
+		}
+		queryString = "Merge branch? (y/n): ";
+		inputString = this->InputText(queryString.c_str(), &vtkvmtkLevelSetSegmentation::YesNoValidator);
+		if (!strcmp(inputString, "y"))
+			this->MergeLevelSet();
+		//else if (!strcmp(inputString, "n"))
+			//; //pass，什么也不做
+		if (this->LevelSets != nullptr)
+			this->DisplayLevelSetSurface(this->LevelSets);
+		queryString = "Segment another branch? (y/n): ";
+		inputString = this->InputText(queryString.c_str(), &vtkvmtkLevelSetSegmentation::YesNoValidator);
+		if (!strcmp(inputString, "y"))
+			endSegmentation = false;
+		else if (!strcmp(inputString, "n"))
+			endSegmentation = true;
 	}
 }
 

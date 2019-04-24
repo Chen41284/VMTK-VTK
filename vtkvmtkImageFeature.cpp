@@ -17,12 +17,17 @@
 
 //STD
 
+//Windows
+#include "WindowsAPI.h"
+
 vtkStandardNewMacro(vtkvmtkImageFeature);
 
 vtkvmtkImageFeature::vtkvmtkImageFeature()
 {
 	this->Image = nullptr;
-	this->FeatureImage = vtkImageData::New();
+	//this->FeatureImage = vtkImageData::New();
+	//this->FeatureImage = vtkSmartPointer<vtkImageData>::New();
+	this->FeatureImage = nullptr;
 	this->Dimensionality = 3;
 	this->DerivativeSigma = 0.0;
 	this->SigmoidRemapping = false;
@@ -34,11 +39,11 @@ vtkvmtkImageFeature::vtkvmtkImageFeature()
 
 vtkvmtkImageFeature::~vtkvmtkImageFeature()
 {
-	if (this->FeatureImage)
+	/*if (this->FeatureImage)
 	{
 		this->FeatureImage->Delete();
 		this->FeatureImage = nullptr;
-	}
+	}*/
 	if (this->FeatureImageType)
 	{
 		delete[] this->FeatureImageType;
@@ -81,7 +86,8 @@ void vtkvmtkImageFeature::BuildVTKGradientBasedFeatureImage()
 	imageInvert->DivideByZeroToCOn();
 	imageInvert->Update();
 
-	this->FeatureImage->DeepCopy(imageInvert->GetOutput());
+	//this->FeatureImage->DeepCopy(imageInvert->GetOutput());
+	this->FeatureImage = imageInvert->GetOutput();
 }
 
 void vtkvmtkImageFeature::BuildFWHMBasedFeatureImage()
@@ -99,7 +105,8 @@ void vtkvmtkImageFeature::BuildFWHMBasedFeatureImage()
 	fwhmFeatureImageFilter->SetBackgroundValue(this->FWHMBackgroundValue);
 	fwhmFeatureImageFilter->Update();
 
-	this->FeatureImage->DeepCopy(fwhmFeatureImageFilter->GetOutput());
+	//this->FeatureImage->DeepCopy(fwhmFeatureImageFilter->GetOutput());
+	this->FeatureImage = fwhmFeatureImageFilter->GetOutput();
 }
 
 void vtkvmtkImageFeature::BuildUpwindGradientBasedFeatureImage()
@@ -131,7 +138,8 @@ void vtkvmtkImageFeature::BuildUpwindGradientBasedFeatureImage()
 		sigmoid->SetOutputMinimum(0.0);
 		sigmoid->SetOutputMaximum(1.0);
 		sigmoid->Update();
-		this->FeatureImage->DeepCopy(sigmoid->GetOutput());
+		//this->FeatureImage->DeepCopy(sigmoid->GetOutput());
+		this->FeatureImage = sigmoid->GetOutput();
 	}
 	else
 	{
@@ -139,7 +147,8 @@ void vtkvmtkImageFeature::BuildUpwindGradientBasedFeatureImage()
 			vtkSmartPointer<vtkvmtkBoundedReciprocalImageFilter>::New();
 		boundedReciprocal->SetInputConnection(gradientMagnitude->GetOutputPort());
 		boundedReciprocal->Update();
-		this->FeatureImage->DeepCopy(boundedReciprocal->GetOutput());
+		//this->FeatureImage->DeepCopy(boundedReciprocal->GetOutput());
+		this->FeatureImage = boundedReciprocal->GetOutput();
 	}
 }
 
@@ -152,7 +161,8 @@ void vtkvmtkImageFeature::BuildGradientBasedFeatureImage()
 	cast->Update();
 
 	double scalarRange[2];
-	vtkImageData *gradientImageData = vtkImageData::New();
+	//vtkSmartPointer<vtkImageData> gradientImageData = vtkSmartPointer<vtkImageData>::New();
+	vtkSmartPointer<vtkImageData> gradientImageData = nullptr;
 	if (this->DerivativeSigma > 0.0)
 	{
 		vtkSmartPointer<vtkvmtkGradientMagnitudeRecursiveGaussianImageFilter> gradientMagnitude = 
@@ -161,7 +171,8 @@ void vtkvmtkImageFeature::BuildGradientBasedFeatureImage()
 		gradientMagnitude->SetSigma(this->DerivativeSigma);
 		gradientMagnitude->SetNormalizeAcrossScale(0);
 		gradientMagnitude->Update();
-		gradientImageData->DeepCopy(gradientMagnitude->GetOutput());
+		//gradientImageData->DeepCopy(gradientMagnitude->GetOutput());
+		gradientImageData = gradientMagnitude->GetOutput();
 		double *range  = gradientMagnitude->GetOutput()->GetPointData()->GetScalars()->GetRange();
 		scalarRange[0] = range[0]; scalarRange[1] = range[1];
 	}
@@ -171,11 +182,12 @@ void vtkvmtkImageFeature::BuildGradientBasedFeatureImage()
 			vtkvmtkGradientMagnitudeImageFilter::New();
 		gradientMagnitude->SetInputConnection(cast->GetOutputPort());
 		gradientMagnitude->Update();
-		gradientImageData->DeepCopy(gradientMagnitude->GetOutput());
+		//gradientImageData->DeepCopy(gradientMagnitude->GetOutput());
+		gradientImageData = gradientMagnitude->GetOutput();
 		double *range = gradientMagnitude->GetOutput()->GetPointData()->GetScalars()->GetRange();
 		scalarRange[0] = range[0]; scalarRange[1] = range[1];
 	}
-	
+
 	if (this->SigmoidRemapping == true)
 	{
 		double inputMinimum = scalarRange[0];
@@ -190,7 +202,9 @@ void vtkvmtkImageFeature::BuildGradientBasedFeatureImage()
 		sigmoid->SetOutputMinimum(0.0);
 		sigmoid->SetOutputMaximum(1.0);
 		sigmoid->Update();
-		this->FeatureImage->DeepCopy(sigmoid->GetOutput());
+
+		//this->FeatureImage->DeepCopy(sigmoid->GetOutput());
+		this->FeatureImage = sigmoid->GetOutput();
 	}
 	else
 	{
@@ -198,7 +212,9 @@ void vtkvmtkImageFeature::BuildGradientBasedFeatureImage()
 			vtkSmartPointer<vtkvmtkBoundedReciprocalImageFilter>::New();
 		boundedReciprocal->SetInputData(gradientImageData);
 		boundedReciprocal->Update();
-		this->FeatureImage->DeepCopy(boundedReciprocal->GetOutput());
+
+		//this->FeatureImage->DeepCopy(boundedReciprocal->GetOutput());
+		this->FeatureImage = boundedReciprocal->GetOutput();
 	}
 }
 

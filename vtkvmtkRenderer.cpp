@@ -9,6 +9,8 @@
 #include <math.h>
 #include <time.h>
 
+#include "WindowsAPI.h"
+
 vtkStandardNewMacro(KeyPressInteractorStyle);
 vtkStandardNewMacro(vtkvmtkRenderer);
 vtkStandardNewMacro(vmtkRendererInputStream);
@@ -24,6 +26,7 @@ vmtkRendererInputStream::vmtkRendererInputStream()
 	this->renderer = NULL;
 }
 
+//置空，不需要释放空间
 vmtkRendererInputStream::~vmtkRendererInputStream()
 {
 
@@ -89,7 +92,7 @@ void KeyPressInteractorStyle::OnKeyPress()
 			key = ""; //the other KeyPress is ignored
 
 		//delete one character
-		if (key == "Backspace" && key == "BackSpace")
+		if (key == "Backspace" || key == "BackSpace")
 		{
 			std::string textInput = this->renderer->GetCurrentTextInput();
 			textInput.pop_back(); //delete the last one character
@@ -315,7 +318,7 @@ void vtkvmtkRenderer::ExitTextInputMode()
 	this->Renderer->RemoveActor(this->TextInputActor);
 	this->Renderer->AddActor(this->TextActor);
 	this->RenderWindow->Render();
-	this->TextInputMode = 0;
+	this->TextInputMode = 0;  //置为0，退出获取文本的模式
 	if (this->ExitTextInputCallback != NULL)
 	{
 		//PromptAsync
@@ -403,7 +406,7 @@ const char* vtkvmtkRenderer::PromptAsync(const char* queryText /*,callback*/)
 	this->SetCurrentTextInput(empty);
 	//self.ExitTextInputCallback = callback;
 	this->UpdateTextInput();
-	this->EnterTextInputMode(0);
+	this->EnterTextInputMode(1);  //0 == > 1，代替vtkvmtkInputStreamline;
 	return this->GetCurrentTextInput();
 }
 
