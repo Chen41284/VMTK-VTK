@@ -140,6 +140,11 @@ void vtkvmtkImageReader::Execute()
 				//this->Format = (char*)extensionFormats[extension];  
 			// strcmp(this->Format, "vtkxml")
 			//Set Method use the string
+			if (this->Format == nullptr)
+			{
+				std::cout << "Error: unsupported format: " << extension << std::endl;
+				return;
+			}
 		}
 	}
 	//Use ITKIO the Format in not [vtkxml, vtk, raw]

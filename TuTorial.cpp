@@ -20,11 +20,14 @@
 #include "vtkvmtkSurfaceViewer.h"
 #include "vtkvmtkLevelSetSegmentation.h"
 
+//ITK
+#include "ResampleCT_WW_WL.h"
+
 //Windows
 #include "WindowsAPI.h"
 
 
-VTK_MODULE_INIT(vtkRenderingOpenGL2);
+VTK_MODULE_INIT(vtkRenderingOpenGL);
 VTK_MODULE_INIT(vtkInteractionStyle);
 VTK_MODULE_INIT(vtkRenderingFreeType);
 
@@ -40,11 +43,18 @@ void LevelSetSegmentation(const char* InputFileName, const char* OutputFileName)
 
 int main()
 {
+	const char* picture = "C:\\Users\\chenjiaxing\\Pictures\\128.bmp";
+	const char* CTIn = "C:\\Users\\chenjiaxing\\Desktop\\5CD37D95";
+	const char* CTOut = "C:\\Users\\chenjiaxing\\Desktop\\5CD37D95.jpg";
 	const char* InputFileName = "C:\\Users\\chenjiaxing\\Desktop\\Python\\body.vti";
 	const char* OutputFileName = "C:\\Users\\chenjiaxing\\Desktop\\Python\\PNG\\body_mc_surface.ply";
-	LevelSetSegmentation(InputFileName, OutputFileName);
+	//RescaleIntensityImageFilter(CTIn,CTOut);
+	ResampleCT_WW_WL(CTIn, CTOut, 800, 800);
+	//WriteImage(CTOut);
+	//LevelSetSegmentation(InputFileName, OutputFileName);
 	//ImageAndSurfaceView(InputFileName, 500);
 	//MarchingCubes(InputFileName, 500, NULL);
+	//ShowImage(CTIn);
 	//VolumeExtraction(InputFileName, OutputFileName);
 	//DicomToVti(InputFileName, OutputFileName);
 	getchar();
@@ -61,6 +71,7 @@ void ShowImage(const char* fileName)
 	vtkSmartPointer<vtkvmtkImageReader> reader =
 		vtkSmartPointer<vtkvmtkImageReader>::New();
 	reader->SetInputFileName(fileName);
+	reader->SetFormat("raw");
 	reader->SetUseITKIO(true);
 	reader->Execute();
 	vtkSmartPointer<vtkvmtkImageViewer> viewer =
